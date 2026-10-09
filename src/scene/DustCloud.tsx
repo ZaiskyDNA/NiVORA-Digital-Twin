@@ -11,8 +11,8 @@ import type { Vec3 } from '../sim/types';
 import { DUST_COLOR } from './palette';
 import { lerp, simFrame, tickAlpha } from './simFrame';
 
-/** Partikel maksimum per node (PM = 10). */
-const MAX = 260;
+/** Partikel maksimum per node (PM = 10) — dikurangi ±40% saat declutter (dulu 260). */
+const MAX = 156;
 
 const vertexShader = /* glsl */ `
   attribute vec4 aSeed; // x: sudut, y: jari-jari 0..1, z: fase tinggi, w: kecepatan
