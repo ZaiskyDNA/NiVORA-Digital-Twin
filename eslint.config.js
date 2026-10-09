@@ -21,6 +21,12 @@ export default defineConfig([
     },
   },
   {
+    // Scene R3F bersifat imperatif: material/geometri/uniform three.js memang dimutasi di useFrame
+    // (pola resmi R3F, §13.8). Aturan React Compiler ini tidak mengenali objek three sebagai mutable.
+    files: ['src/scene/**/*.{ts,tsx}'],
+    rules: { 'react-hooks/immutability': 'off' },
+  },
+  {
     // Logika simulasi harus murni: tanpa React/Three (CLAUDE.md §3, §12).
     files: ['src/sim/**/*.ts', 'src/config/**/*.ts'],
     rules: {
