@@ -45,6 +45,16 @@ export const MweriChart = memo(function MweriChart({ points }: { points: readonl
             connectNulls
           />
           <Line
+            dataKey="sim"
+            stroke={COLOR.fg}
+            strokeWidth={2}
+            strokeDasharray="1 4"
+            strokeLinecap="round"
+            dot={false}
+            isAnimationActive={false}
+            connectNulls
+          />
+          <Line
             dataKey="proj"
             stroke={COLOR.critical}
             strokeWidth={2}
