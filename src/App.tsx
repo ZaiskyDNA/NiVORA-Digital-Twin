@@ -13,9 +13,12 @@ import { LiveAnnouncer } from './ui/LiveAnnouncer';
 import { MweriPanel } from './ui/MweriPanel';
 import { ReactiveBanner } from './ui/ReactiveBanner';
 import { RecommendationCard } from './ui/RecommendationCard';
+import { MobileSheet } from './ui/MobileSheet';
+import { MobileTopBar } from './ui/MobileTopBar';
 import { TopBar } from './ui/TopBar';
 import { TourOverlay } from './ui/TourOverlay';
 import { WeightsDrawer } from './ui/WeightsDrawer';
+import { useIsMobile } from './ui/hooks';
 
 const DebugPage = lazy(() => import('./debug/DebugPage'));
 const PlantScene = lazy(() => import('./scene/PlantScene'));
@@ -37,6 +40,7 @@ export default function App() {
   const isDebug = hash === '#debug';
   const focus = useView((s) => s.focusMode);
   const compare = useView((s) => s.compareMode);
+  const mobile = useIsMobile();
 
   // Jam simulasi untuk halaman utama (halaman debug memasang jamnya sendiri).
   useEffect(() => (isDebug ? undefined : startSimClock()), [isDebug]);
@@ -80,10 +84,23 @@ export default function App() {
         )}
       </main>
 
-      {/*
+      {mobile ? (
+        // Ponsel (§13.16): TopBar dua baris + scene penuh + bottom sheet; tur di atas sheet.
+        <div className="pointer-events-none absolute inset-0 z-[var(--z-panel)] flex flex-col">
+          <MobileTopBar />
+          <ReactiveBanner />
+          <div className="mt-auto flex flex-col gap-2 landscape:w-[24rem] landscape:pl-3">
+            <div className="px-3 landscape:px-0">
+              <TourOverlay />
+            </div>
+            <MobileSheet />
+          </div>
+        </div>
+      ) : (
+      /*
         Declutter: maksimal tiga blok selalu terlihat — TopBar, panel MWERI, kartu Rekomendasi.
         KPI hanya saat "Bandingkan reaktif"; mode fokus (H) menyisakan kartu Rekomendasi.
-      */}
+      */
       <div className="pointer-events-none absolute inset-0 z-[var(--z-panel)] flex flex-col">
         <TopBar />
         <ReactiveBanner />
@@ -108,6 +125,7 @@ export default function App() {
           </div>
         </footer>
       </div>
+      )}
       <div className="pointer-events-none absolute inset-0 z-[var(--z-drawer)]">
         <WeightsDrawer />
       </div>
