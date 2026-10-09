@@ -369,3 +369,11 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 - Bloom selektif: `luminanceThreshold = 1`; hanya material HDR (`toneMapped={false}`, warna × >1) — beacon, safe route, lampu truk — yang menyala. EffectComposer mematikan tone mapping renderer → `ToneMapping` ACES di akhir chain.
 - `eslint`: `react-hooks/immutability` dimatikan khusus `src/scene/**` (mutasi objek three di `useFrame` adalah pola resmi R3F).
 - Dev-only: `window.__nivoraPerf` (fps, draw call, segitiga, deteksi render ganda) & `window.__nivoraSim` (store) untuk pengujian.
+
+### 13.13 Panel UI (Fase 5)
+- Data panel dihitung oleh fungsi murni di `src/ui/viewModels.ts` (diuji di `src/ui/__tests__`): ranking, grafik prediksi, kartu node, kalimat rekomendasi (kapan · prioritas · ke mana · lewat mana), tabel rute, KPI 3P, pathway. Komponen hanya merender hasilnya.
+- Kelas MWERI di UI dihitung dari angka yang **ditampilkan** (1 desimal) agar tidak muncul "3.0 · RENDAH".
+- **NodeCard tidak memakai drei `<Html>`** (lihat §13.11); dirender di `scene/NodeCardLayer.tsx` dengan registry proyeksi yang sama (opsi `align`). Mode ringkas di bawah 1280px kecuali node critical.
+- Laju pembaruan UI: teks panel/kartu/label ≤ 5 Hz (`UI_TEXT_MS`), grafik & KPI ±2 Hz (`UI_CHART_MS`), lewat `useThrottledSim`. Tanpa ini fps turun ke 19 pada 20× (recharts digambar ulang tiap tick); `MweriChart` juga di-`memo`.
+- Panel bisa dilipat; default terlipat di bawah 1280px. Isi panel terlipat tidak di-render. Preset kamera pindah ke TopBar; legenda hanya status.
+- Satu `role="status"` global (`ui/LiveAnnouncer.tsx`) untuk node yang menjadi critical & re-routing.
