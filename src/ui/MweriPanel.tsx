@@ -73,7 +73,7 @@ function RankItem({ row, selected, onSelect }: { row: RankRow; selected: boolean
   );
 }
 
-export function MweriPanel() {
+export function MweriPanel({ embedded = false }: { embedded?: boolean }) {
   const rows = JSON.parse(useThrottledSim(selectRows, UI_TEXT_MS)) as RankRow[];
   const formula = useSim(selectFormula);
   const chart = useThrottledSim(selectChart, UI_CHART_MS);
@@ -95,6 +95,7 @@ export function MweriPanel() {
       title={UI.mweri.title}
       subtitle={formula}
       className="w-panel-w"
+      embedded={embedded}
       headerExtra={
         insight && (
           // Progressive disclosure: insight "Volume ≠ risiko" dibuka lewat ikon (i); titik = ada insight.
