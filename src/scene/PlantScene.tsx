@@ -11,6 +11,7 @@ import { CameraRig } from './CameraRig';
 import { ConveyorFlow } from './ConveyorFlow';
 import { DustCloud } from './DustCloud';
 import { Effects } from './Effects';
+import { FacilityHitAreas } from './FacilityHitAreas';
 import { Floor } from './Floor';
 import { HaulTrucks } from './HaulTruck';
 import { LabelLayer } from './LabelLayer';
@@ -65,6 +66,7 @@ export default function PlantScene() {
           <WorkerZone key={zone.id} {...zone} emphasis={zone.id === 'wz-high'} />
         ))}
         <StaticPlant />
+        <FacilityHitAreas />
         <ConveyorFlow />
         <Routes />
         <Barricades />
