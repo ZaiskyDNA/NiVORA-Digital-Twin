@@ -100,3 +100,11 @@ export const useSim = create<SimStore>()((set, get) => ({
 
 /** State engine yang sedang ditampilkan. */
 export const selectViewed = (s: SimStore): SimState => (s.view === 'nivora' ? s.nivora : s.reactive);
+
+declare global {
+  interface Window {
+    /** Hanya mode dev: akses store untuk debugging & pengujian end-to-end. */
+    __nivoraSim?: typeof useSim;
+  }
+}
+if (import.meta.env.DEV && typeof window !== 'undefined') window.__nivoraSim = useSim;
