@@ -8,3 +8,6 @@ dist
 .vercel
 coverage
 .playwright-mcp
+
+# Dokumen esai sumber (tidak dipublikasikan)
+ESAI IOSH_*.md
