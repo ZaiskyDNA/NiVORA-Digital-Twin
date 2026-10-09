@@ -16,6 +16,7 @@ import { HaulTrucks } from './HaulTruck';
 import { LabelLayer } from './LabelLayer';
 import { LabelLeaders } from './LabelLeaders';
 import { beaconHeight, CAMERA_PRESETS_POSE, cameraPosition } from './layout';
+import { NodeCardLayer } from './NodeCardLayer';
 import { NodeMarker } from './NodeMarker';
 import { PerfProbe } from './PerfProbe';
 import { Roads } from './Roads';
@@ -83,6 +84,7 @@ export default function PlantScene() {
         {import.meta.env.DEV && <PerfProbe />}
       </Canvas>
       <LabelLayer />
+      <NodeCardLayer />
     </div>
   );
 }
