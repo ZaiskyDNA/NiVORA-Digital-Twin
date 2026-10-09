@@ -7,18 +7,20 @@ import type { PathwayStage } from '../sim/pathway';
 import type { Graph, NodeSeed, Vec3 } from '../sim/types';
 
 // ── Node sensor ─────────────────────────────────────────────────────────
-// Nilai awal mereproduksi Lampiran 4: A (H8 P9 W9 T5), B (H7 P6 W3 T4), C (H6 P3 W0 T2).
+// Baseline awal shift (t = 0) — engine mulai dari sini. Belum ada node yang critical, sehingga
+// skenario menentukan seberapa cepat kondisi memburuk (§8).
 // W = workers / maxWorkersZone × 10; T = exposureMin / exposureLimitMin(60) × 10.
 export const NODE_SEEDS: NodeSeed[] = [
   {
     id: 'A',
     name: 'Transfer Point 1',
     position: [0, 0, 2],
-    residueLevel: 72,
-    pm: 9,
+    residueLevel: 45,
+    pm: 5.5,
+    zoneId: 'wz-high',
     workers: 9,
     maxWorkersZone: 10,
-    exposureMin: 30,
+    exposureMin: 20,
     hazard: 8,
     material: { compatibleWithProcess: true, secondaryUse: true, recoverableValue: true, treatable: true },
   },
@@ -26,11 +28,12 @@ export const NODE_SEEDS: NodeSeed[] = [
     id: 'B',
     name: 'Transfer Point 2',
     position: [8, 0, -6],
-    residueLevel: 54,
-    pm: 6,
+    residueLevel: 40,
+    pm: 4.5,
+    zoneId: 'zone-b',
     workers: 3,
     maxWorkersZone: 10,
-    exposureMin: 24,
+    exposureMin: 15,
     hazard: 7,
     material: { compatibleWithProcess: false, secondaryUse: false, recoverableValue: true, treatable: true },
   },
@@ -38,8 +41,9 @@ export const NODE_SEEDS: NodeSeed[] = [
     id: 'C',
     name: 'Stockpile Edge',
     position: [20, 0, 10],
-    residueLevel: 61,
+    residueLevel: 58,
     pm: 3,
+    zoneId: 'zone-c',
     workers: 0,
     maxWorkersZone: 10,
     exposureMin: 12,
@@ -47,6 +51,50 @@ export const NODE_SEEDS: NodeSeed[] = [
     material: { compatibleWithProcess: false, secondaryUse: false, recoverableValue: false, treatable: true },
   },
 ];
+
+/**
+ * Potret Lampiran 4 esai: A (H8 P9 W9 T5) → 8.4, B (H7 P6 W3 T4) → 5.1, C (H6 P3 W0 T2) → 2.6.
+ * Bukan titik awal engine — dipakai test & sebagai acuan; kondisi serupa muncul saat Production Surge.
+ */
+export const ESSAY_SNAPSHOT: Record<string, Pick<NodeSeed, 'residueLevel' | 'pm' | 'workers' | 'exposureMin'>> = {
+  A: { residueLevel: 72, pm: 9, workers: 9, exposureMin: 30 },
+  B: { residueLevel: 54, pm: 6, workers: 3, exposureMin: 24 },
+  C: { residueLevel: 61, pm: 3, workers: 0, exposureMin: 12 },
+};
+
+/** Dinamika sensor sintetis per node (§5.6). Nilai ilustratif, per menit pada laju produksi 1.0×. */
+export interface NodeDynamics {
+  /** Akumulasi residu (% per menit). */
+  accumulation: number;
+  /** Skor PM dasar dari aktivitas crusher/conveyor di sekitar node. */
+  pmBase: number;
+  /** Rentang jumlah pekerja di zona (random walk). */
+  workersMin: number;
+  workersMax: number;
+}
+
+export const NODE_DYNAMICS: Record<string, NodeDynamics> = {
+  A: { accumulation: 0.35, pmBase: 6, workersMin: 7, workersMax: 10 },
+  B: { accumulation: 0.2, pmBase: 4.5, workersMin: 2, workersMax: 4 },
+  // Node C: tidak ada pekerja — pesan kunci esai (residu tinggi, MWERI rendah).
+  C: { accumulation: 0.12, pmBase: 2.5, workersMin: 0, workersMax: 0 },
+};
+
+/** Truk & penanganan (ilustratif). */
+export const HAULING = {
+  /** Kecepatan truk (satuan D per menit). */
+  speed: 0.5,
+  /** Residu yang diangkut per trip (% level node). */
+  capacity: 45,
+  /** Level minimum setelah ditangani. */
+  floorLevel: 5,
+  /** Jumlah truk maksimum yang beroperasi bersamaan. */
+  fleet: 2,
+  /** Rentang waktu muat (menit), diacak dengan stream RNG keputusan. */
+  loadingMin: [1, 3] as [number, number],
+  /** Tambahan skor PM di zona yang sedang dilintasi truk (debu jalan angkut). */
+  dustBoost: 1.5,
+} as const;
 
 // ── Fasilitas ───────────────────────────────────────────────────────────
 export type FacilityKind =
@@ -75,8 +123,12 @@ export const FACILITIES: Facility[] = [
   { id: 'disposal', kind: 'disposal', position: [32, 0, 6], size: [10, 0.5, 7] },
 ];
 
-/** Zona aktivitas pekerja tinggi — antara Node A & Reprocessing (§6). */
-export const WORKER_ZONES = [{ id: 'wz-high', center: [-9, 0, 3] as Vec3, size: [8, 7] as [number, number] }];
+/** Zona pekerja. `wz-high` = zona aktivitas tinggi antara Node A & Reprocessing (§6). */
+export const WORKER_ZONES: { id: string; center: Vec3; size: [number, number] }[] = [
+  { id: 'wz-high', center: [-9, 0, 3], size: [8, 7] },
+  { id: 'zone-b', center: [8, 0, -8], size: [6, 4] },
+  { id: 'zone-c', center: [20, 0, 12], size: [6, 4] },
+];
 
 /** Tahap pathway → fasilitas tujuan (§5.4, §13.6). Repurpose/Recycle ditangani unit Reprocessing. */
 export const STAGE_FACILITY: Record<PathwayStage, string> = {
