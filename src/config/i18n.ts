@@ -226,6 +226,22 @@ export const UI = {
     productivity: 'Trip tak perlu',
     unitExposure: 'pekerja-menit',
   },
+  fallback: {
+    sceneTitle: 'Scene 3D tidak dapat ditampilkan',
+    appTitle: 'NiVORA gagal dimuat',
+    noWebgl:
+      'Browser ini tidak dapat membuat konteks WebGL. Biasanya karena akselerasi hardware dimatikan atau driver GPU diblokir browser.',
+    hint: 'Di Chrome/Edge, salin alamat berikut ke address bar, aktifkan opsinya, lalu klik "Luncurkan ulang":',
+    steps: [
+      { url: 'chrome://settings/system', what: 'nyalakan "Gunakan akselerasi grafis jika tersedia"' },
+      { url: 'chrome://flags/#ignore-gpu-blocklist', what: 'bila langkah 1 sudah aktif: pilih "Enabled"' },
+    ],
+    alt: 'Atau buka di Firefox, yang tetap dapat merender scene. Gambar di latar adalah tangkapan diam scene.',
+    copy: 'Salin',
+    copied: 'Tersalin',
+    detail: 'Detail teknis',
+    reload: 'Muat ulang',
+  },
   tour: {
     label: 'Presentasi otomatis',
     step: (i: number, n: number) => `${i} / ${n}`,
