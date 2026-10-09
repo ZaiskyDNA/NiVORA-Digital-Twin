@@ -20,7 +20,11 @@ const KIND_LABEL: Record<RouteRowView['kind'], string> = {
 
 function RouteRow({ row }: { row: RouteRowView }) {
   const safe = row.kind === 'safe';
-  const label = row.blocked ? UI.routing.blocked : KIND_LABEL[row.kind];
+  const label = row.blocked
+    ? UI.routing.blocked
+    : row.kind === 'safe' && row.throughZone
+      ? UI.routing.chosenInZone
+      : KIND_LABEL[row.kind];
   const rowClass = row.blocked
     ? 'text-fg-disabled line-through'
     : safe
@@ -35,7 +39,7 @@ function RouteRow({ row }: { row: RouteRowView }) {
     <tr className={`border-b border-line/60 ${rowClass}`} aria-selected={row.selected}>
       <th scope="row" className={`h-row px-2 text-left font-normal ${safe ? 'border-l-2 border-safe font-semibold' : 'border-l-2 border-transparent'}`}>
         <span className="font-semibold">{row.id}</span> · {label}
-        {safe && ' ✓'}
+        {safe && !row.throughZone && ' ✓'}
         {row.kind === 'shortest' && !row.selected && !row.blocked && ' ✕'}
       </th>
       <td className={td}>{row.D}</td>
@@ -46,10 +50,16 @@ function RouteRow({ row }: { row: RouteRowView }) {
   );
 }
 
-function Recommendation({ parts }: { parts: readonly TextPart[] }) {
+function Recommendation({ parts, reactive }: { parts: readonly TextPart[]; reactive: boolean }) {
+  // Cyan dicadangkan untuk keputusan NiVORA (design-system §1.2); baseline reaktif bernada merah.
+  const box = reactive
+    ? 'border-critical/40 bg-critical/10'
+    : 'border-safe/40 bg-safe/10 shadow-glow-safe';
   return (
-    <div className="mt-4 rounded-tile border border-safe/40 bg-safe/10 p-tile shadow-glow-safe">
-      <h3 className="text-title uppercase text-safe">{UI.routing.recommendationTitle}</h3>
+    <div className={`mt-4 rounded-tile border p-tile ${box}`}>
+      <h3 className={`text-title uppercase ${reactive ? 'text-critical-fg' : 'text-safe'}`}>
+        {reactive ? UI.routing.reactiveTitle : UI.routing.recommendationTitle}
+      </h3>
       <p className="mt-2 text-body text-fg">
         {parts.map((p, i) =>
           p.strong ? (
@@ -69,6 +79,7 @@ export function RoutingPanel() {
   const { rows, scaled } = JSON.parse(useThrottledSim(selectRows, UI_TEXT_MS)) as ReturnType<typeof routingRows>;
   const formula = useSim(selectFormula);
   const parts = JSON.parse(useThrottledSim(selectRec, UI_TEXT_MS)) as TextPart[];
+  const reactive = useSim((s) => s.view === 'reactive');
 
   return (
     <Panel title={UI.routing.title} subtitle={formula} className="w-panel-w">
@@ -97,7 +108,7 @@ export function RoutingPanel() {
         <p className="text-caption text-fg-3">{UI.routing.noCandidates}</p>
       )}
       {scaled && <p className="mt-1 text-caption text-fg-3">{UI.routing.scaled}</p>}
-      <Recommendation parts={parts} />
+      <Recommendation parts={parts} reactive={reactive} />
     </Panel>
   );
 }
