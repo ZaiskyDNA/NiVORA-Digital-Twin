@@ -67,6 +67,11 @@ export interface SceneLabelOptions {
   destination?: string | null;
   /** Node prioritas #1 yang critical — otomatis tampil sebagai kartu lengkap. */
   autoCard?: string | null;
+  /**
+   * Ponsel: hanya pill node — label fasilitas/zona dan kartu melayang tidak muat; detail node
+   * dan rekomendasi pindah ke bottom sheet.
+   */
+  mobile?: boolean;
 }
 
 /**
@@ -74,8 +79,8 @@ export interface SceneLabelOptions {
  * yang di-hover; node tampil sebagai pill kecil kecuali yang dipilih atau prioritas #1 yang critical.
  */
 export function buildSceneLabels(nodes: readonly NodeState[], opts: SceneLabelOptions = {}): SceneLabel[] {
-  const { selected = null, hoveredFacility = null, destination = null, autoCard = null } = opts;
-  const visibleFacilities = FACILITIES.filter((f) => f.id === hoveredFacility || f.id === destination);
+  const { selected = null, hoveredFacility = null, destination = null, autoCard = null, mobile = false } = opts;
+  const visibleFacilities = mobile ? [] : FACILITIES.filter((f) => f.id === hoveredFacility || f.id === destination);
   const facilities = visibleFacilities.map((f): SceneLabel => {
     const id = `facility-${f.id}`;
     const anchor: Vec3 = [f.position[0], topOf(f), f.position[2]];
@@ -93,7 +98,7 @@ export function buildSceneLabels(nodes: readonly NodeState[], opts: SceneLabelOp
     const id = `node-${n.id}`;
     const anchor: Vec3 = [n.position[0], beaconHeight(n.id) + 0.5, n.position[2]];
     const isSelected = n.id === selected;
-    const full = isSelected || (selected === null && n.id === autoCard);
+    const full = !mobile && (isSelected || (selected === null && n.id === autoCard));
     if (!full) {
       // Pill kecil tepat di atas beacon.
       return {
@@ -124,7 +129,7 @@ export function buildSceneLabels(nodes: readonly NodeState[], opts: SceneLabelOp
   const zoneAnchor: Vec3 | null = zone
     ? [zone.center[0] - zone.size[0] / 2 + 0.5, 0.05, zone.center[2] + zone.size[1] / 2 - 0.5]
     : null;
-  const zoneLabels: SceneLabel[] = zoneAnchor
+  const zoneLabels: SceneLabel[] = zoneAnchor && !mobile
     ? [
         {
           id: 'zone-wz-high',
