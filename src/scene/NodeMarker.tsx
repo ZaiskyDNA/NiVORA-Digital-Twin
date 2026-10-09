@@ -17,7 +17,7 @@ import { simFrame } from './simFrame';
 
 const RING_BASE = 1.6;
 const RING_SPREAD = 2.8; // skala maksimum ring saat memudar
-const RINGS = 3;
+const RINGS = 2; // declutter: ring ketiga dihapus
 const COLOR_LAMBDA = 6;
 
 interface Props {
