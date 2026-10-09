@@ -4,6 +4,8 @@
  */
 import { useEffect, useRef } from 'react';
 import { UI } from '../config/i18n';
+import { startTour, stopTour } from '../demo/tour';
+import { useTour } from '../store/useTour';
 import { selectViewed, SPEEDS, useSim, type SimStore } from '../store/useSim';
 import { useView } from '../store/useView';
 import { CameraMenu } from './CameraMenu';
@@ -28,7 +30,7 @@ export function TopBar() {
   const { setCompareMode, setFocusMode, setWeightsOpen } = useView.getState();
   const weightsButton = useRef<HTMLButtonElement>(null);
   const wasOpen = useRef(false);
-  const presenting = useRef(false);
+  const touring = useTour((s) => s.active);
 
   // Kembalikan fokus ke tombol pemicu saat drawer bobot ditutup.
   useEffect(() => {
@@ -36,25 +38,23 @@ export function TopBar() {
     wasOpen.current = weightsOpen;
   }, [weightsOpen]);
 
-  // Keluar layar penuh (Esc bawaan browser) → keluar juga dari mode fokus presentasi.
+  // Keluar layar penuh (Esc bawaan browser) → hentikan juga presentasi otomatis.
   useEffect(() => {
     const onChange = () => {
-      if (!document.fullscreenElement && presenting.current) {
-        presenting.current = false;
-        setFocusMode(false);
-      }
+      if (!document.fullscreenElement && useTour.getState().active) stopTour();
     };
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
-  }, [setFocusMode]);
+  }, []);
 
+  /** Presentasi = auto-tour 60 detik di layar penuh. */
   const togglePresent = async () => {
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
+    if (useTour.getState().active) {
+      stopTour();
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => undefined);
       return;
     }
-    presenting.current = true;
-    setFocusMode(true);
+    startTour();
     await document.documentElement.requestFullscreen?.().catch(() => undefined);
   };
 
@@ -146,8 +146,8 @@ export function TopBar() {
           {UI.top.focus}
           <kbd className="rounded-badge border border-line-strong px-1 font-mono text-label text-fg-3">H</kbd>
         </button>
-        <button type="button" onClick={togglePresent} className={`${btn} ${idle}`}>
-          {UI.top.present}
+        <button type="button" aria-pressed={touring} onClick={togglePresent} className={`${btn} ${touring ? on : idle}`}>
+          {touring ? UI.top.exitPresent : UI.top.present}
         </button>
       </div>
     </header>
