@@ -17,8 +17,11 @@ export interface SceneLabel {
   title: string;
   caption?: string;
   color: string;
-  /** 'card' = NodeCard (dirender NodeCardLayer); default label callout. */
-  kind?: 'label' | 'card';
+  /**
+   * 'card' = NodeCard lengkap, 'pill' = ringkasan node kecil (keduanya dirender NodeCardLayer);
+   * default = label callout.
+   */
+  kind?: 'label' | 'card' | 'pill';
   /** Sisi kotak yang menempel ke titik `at`. Default: kotak di atas titik. */
   align?: LabelAlign;
 }
@@ -41,7 +44,8 @@ const LABEL_OFFSET: Record<string, [number, number]> = {
   'node-A': [-7, -12],
   'node-B': [9, 3],
   'node-C': [3, -6],
-  'zone-wz-high': [-4, 1.5],
+  // Di bawah-kiri zona: menjauh dari label safe route & pill Node A di atasnya.
+  'zone-wz-high': [-8, -2.5],
 };
 
 const NODE_CARD_ALIGN: Record<string, LabelAlign> = { A: 'below', B: 'right', C: 'below' };
@@ -54,8 +58,25 @@ const place = (id: string, anchor: Vec3, fallbackUp = 3): Vec3 => {
 /** Puncak bangunan — smelter memperhitungkan cerobong. */
 const topOf = (f: Facility): number => (f.kind === 'smelter' ? f.size[1] * 1.75 : f.size[1]);
 
-export function buildSceneLabels(nodes: readonly NodeState[], selected: string | null = null): SceneLabel[] {
-  const facilities = FACILITIES.map((f): SceneLabel => {
+export interface SceneLabelOptions {
+  /** Node yang dibuka detailnya. */
+  selected?: string | null;
+  /** Fasilitas yang sedang di-hover — labelnya ditampilkan. */
+  hoveredFacility?: string | null;
+  /** Fasilitas tujuan rute aktif — labelnya selalu tampil. */
+  destination?: string | null;
+  /** Node prioritas #1 yang critical — otomatis tampil sebagai kartu lengkap. */
+  autoCard?: string | null;
+}
+
+/**
+ * Progressive disclosure (declutter): label fasilitas hanya untuk tujuan rute aktif & fasilitas
+ * yang di-hover; node tampil sebagai pill kecil kecuali yang dipilih atau prioritas #1 yang critical.
+ */
+export function buildSceneLabels(nodes: readonly NodeState[], opts: SceneLabelOptions = {}): SceneLabel[] {
+  const { selected = null, hoveredFacility = null, destination = null, autoCard = null } = opts;
+  const visibleFacilities = FACILITIES.filter((f) => f.id === hoveredFacility || f.id === destination);
+  const facilities = visibleFacilities.map((f): SceneLabel => {
     const id = `facility-${f.id}`;
     const anchor: Vec3 = [f.position[0], topOf(f), f.position[2]];
     return {
@@ -72,6 +93,19 @@ export function buildSceneLabels(nodes: readonly NodeState[], selected: string |
     const id = `node-${n.id}`;
     const anchor: Vec3 = [n.position[0], beaconHeight(n.id) + 0.5, n.position[2]];
     const isSelected = n.id === selected;
+    const full = isSelected || (selected === null && n.id === autoCard);
+    if (!full) {
+      // Pill kecil tepat di atas beacon.
+      return {
+        id,
+        anchor,
+        at: offsetOnScreen(anchor, 0, 1.4),
+        title: `Node ${n.id}`,
+        color: STATUS_COLOR[n.status],
+        kind: 'pill',
+        align: 'above',
+      };
+    }
     return {
       id,
       anchor,
@@ -96,6 +130,7 @@ export function buildSceneLabels(nodes: readonly NodeState[], selected: string |
           id: 'zone-wz-high',
           anchor: zoneAnchor,
           at: place('zone-wz-high', zoneAnchor),
+          align: 'below',
           title: ZONE_LABEL.high,
           caption: ZONE_LABEL.workersDetected(zoneWorkers),
           color: COLOR.critical,
@@ -114,23 +149,25 @@ function candidateOf(route: Route): string | null {
   return null;
 }
 
-/** Titik tengah ruas ke-`which` sebuah rute ('mid' = ruas tengah) — posisi label. */
-function midpoint(route: Route, which: 'first' | 'mid' = 'mid'): Vec3 | null {
-  const i = which === 'first' ? 0 : Math.floor((route.vertices.length - 1) / 2);
+/** Titik tengah ruas tengah sebuah rute — posisi label. */
+function midpoint(route: Route): Vec3 | null {
+  const i = Math.floor((route.vertices.length - 1) / 2);
   const a = VERTEX_POS[route.vertices[i] ?? ''];
   const b = VERTEX_POS[route.vertices[i + 1] ?? ''];
   if (!a || !b) return null;
   return [(a[0] + b[0]) / 2, ROUTE_Y, (a[2] + b[2]) / 2];
 }
 
-/** Label rute terpilih & rute terpendek (bila berbeda) — biaya komposit dengan bobot saat ini. */
+/**
+ * Hanya rute terpilih yang diberi label (declutter). Rute terpendek cukup berupa garis merah
+ * putus-putus; artinya dijelaskan di legenda.
+ */
 export function buildRouteLabels(s: SimState): SceneLabel[] {
   const rec = s.recommendation;
   if (!rec) return [];
   const cost = compositeCost(s.weights.route);
   const costOf = (r: Route) => r.edges.reduce((sum, e) => sum + cost(e), 0).toFixed(1);
   const out: SceneLabel[] = [];
-  const same = rec.route && rec.shortest && rec.route.vertices.join() === rec.shortest.vertices.join();
 
   if (rec.route && s.policy === 'nivora') {
     const at = midpoint(rec.route);
@@ -146,19 +183,6 @@ export function buildRouteLabels(s: SimState): SceneLabel[] {
       });
     }
   }
-  if (rec.shortest && (s.policy !== 'nivora' || !same)) {
-    // Ruas pertama (menembus zona pekerja) agar tidak bertumpuk dengan label safe route.
-    const at = midpoint(rec.shortest, 'first');
-    if (at) {
-      out.push({
-        id: 'route-shortest',
-        anchor: at,
-        at: offsetOnScreen(at, 1, 1),
-        title: ROUTE_LABEL.shortest(candidateOf(rec.shortest), costOf(rec.shortest)),
-        color: COLOR.critical,
-      });
-    }
-  }
   return out;
 }
 
@@ -169,5 +193,7 @@ export function sceneLabelKey(s: SimState): string {
   const routes = buildRouteLabels(s)
     .map((l) => l.title)
     .join('|');
-  return `${statuses}#${workers}#${routes}`;
+  const top = s.nodes.find((n) => n.id === s.ranking[0]);
+  const autoCard = top?.status === 'critical' ? top.id : '';
+  return `${statuses}#${workers}#${routes}#${s.recommendation?.destination ?? ''}#${autoCard}`;
 }
