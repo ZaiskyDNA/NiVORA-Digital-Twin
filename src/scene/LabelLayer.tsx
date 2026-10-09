@@ -1,8 +1,9 @@
 /** Lapisan DOM label callout di atas canvas (posisi ditulis oleh LabelProjector). */
 import { bindLabel } from './labelRegistry';
-import type { SceneLabel } from './sceneLabels';
+import { useSceneLabels } from './useSceneLabels';
 
-export function LabelLayer({ labels }: { labels: readonly SceneLabel[] }) {
+export function LabelLayer() {
+  const labels = useSceneLabels();
   return (
     <div className="pointer-events-none absolute inset-0 z-[var(--z-scene-overlay)] overflow-hidden" aria-hidden>
       {labels.map((l) => (
