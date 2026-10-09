@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NODE_SEEDS } from '../../config/plant';
+import { ESSAY_SNAPSHOT, NODE_SEEDS } from '../../config/plant';
 import { DEFAULT_MWERI_WEIGHTS, NORMALIZATION } from '../../config/weights';
 import { classifyMweri, computeMweri, mweriParamsOf, normalizeWeights, rankByMweri, toScore } from '../mweri';
 import type { MweriParams, NodeState } from '../types';
@@ -12,13 +12,22 @@ const APPENDIX_4: Record<string, { params: MweriParams; mweri: number }> = {
   C: { params: { H: 6, P: 3, W: 0, T: 2 }, mweri: 2.6 },
 };
 
-const asNode = (seed: (typeof NODE_SEEDS)[number]): NodeState => ({
-  ...seed,
-  status: 'normal',
-  mweri: 0,
-  ttc: null,
-  history: [],
-});
+/** Node pada potret Lampiran 4: data statis plant.ts + nilai sensor ESSAY_SNAPSHOT. */
+const essayNode = (seed: (typeof NODE_SEEDS)[number]): NodeState => {
+  const snap = ESSAY_SNAPSHOT[seed.id];
+  if (!snap) throw new Error(`Node ${seed.id} tidak ada di ESSAY_SNAPSHOT`);
+  return {
+    ...seed,
+    ...snap,
+    status: 'normal',
+    statusReasons: [],
+    mweri: 0,
+    ttc: null,
+    levelSlope: null,
+    history: [],
+    exposureWindow: [],
+  };
+};
 
 describe('MWERI (§5.1)', () => {
   it('bobot default berjumlah 1', () => {
@@ -30,11 +39,11 @@ describe('MWERI (§5.1)', () => {
     expectNear(computeMweri(params, DEFAULT_MWERI_WEIGHTS), mweri);
   });
 
-  it('data awal plant.ts menghasilkan parameter & MWERI Lampiran 4 lewat normalisasi sensor', () => {
+  it('ESSAY_SNAPSHOT + plant.ts menghasilkan parameter & MWERI Lampiran 4 lewat normalisasi sensor', () => {
     for (const seed of NODE_SEEDS) {
       const expected = APPENDIX_4[seed.id];
       if (!expected) throw new Error(`Node ${seed.id} tidak ada di Lampiran 4`);
-      const params = mweriParamsOf(asNode(seed), NORMALIZATION.exposureLimitMin);
+      const params = mweriParamsOf(essayNode(seed), NORMALIZATION.exposureLimitMin);
       expectNear(params.H, expected.params.H);
       expectNear(params.P, expected.params.P);
       expectNear(params.W, expected.params.W);
