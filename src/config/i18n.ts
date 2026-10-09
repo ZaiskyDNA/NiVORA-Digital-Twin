@@ -226,6 +226,50 @@ export const UI = {
     productivity: 'Trip tak perlu',
     unitExposure: 'pekerja-menit',
   },
+  tour: {
+    label: 'Presentasi otomatis',
+    step: (i: number, n: number) => `${i} / ${n}`,
+    pause: 'Jeda tur',
+    resume: 'Lanjutkan tur',
+    next: 'Lewati ke langkah berikutnya',
+    exit: 'Keluar dari presentasi',
+    done: 'Selesai — jelajahi sendiri atau mulai ulang presentasi.',
+    restart: 'Mulai ulang',
+    steps: {
+      overview: {
+        title: 'Overview',
+        text: 'Digital twin sirkuit conveyor smelter nikel: tiga NiVORA Node memantau residu, debu, dan pekerja di zonanya.',
+      },
+      normal: {
+        title: 'Normal Operation',
+        text: 'Produksi 1.0×. Edge-AI menandai status, MWERI mengurutkan prioritas — pemantauan rutin.',
+      },
+      surge: {
+        title: 'Production Surge',
+        text: 'Produksi 1.8× dan partikulat naik. Residu Node A menumpuk cepat dan MWERI-nya mendekati ambang kritis.',
+      },
+      nodeA: {
+        title: 'Predict · Node A critical',
+        text: (ttc: string) =>
+          `Node A menjadi critical. Digital Twin memproyeksikan tren (garis putus) dan simulasi 30 menit ke depan; ${ttc}.`,
+        ttcNow: 'ambang kritis sudah terlewati',
+        ttcIn: (m: number) => `kritis dalam ±${m} menit`,
+      },
+      route: {
+        title: 'Protect & Circulate',
+        text: 'Pathway memilih Reuse / Reprocessing. Safe routing memilih Rute B yang memutari zona pekerja, bukan rute terpendek.',
+      },
+      disruption: {
+        title: 'Route Disruption',
+        text: 'Ruas kunci Rute B diblokir. Sistem langsung mengalihkan truk ke Rute C — alternatif dengan risiko pekerja terendah berikutnya.',
+      },
+      kpi: {
+        title: 'Reaktif vs NiVORA',
+        text: (people: string, planet: string) =>
+          `Dibanding kebijakan reaktif pada input sensor yang sama: paparan pekerja ${people}, recovery rate ${planet}. Nilai ilustratif.`,
+      },
+    },
+  },
   legendLine: { safe: 'Safe route (keputusan NiVORA)', shortest: 'Rute terpendek (dihindari)' },
   insightToggle: 'Kenapa Node dengan residu tertinggi bukan prioritas?',
   scenario: { title: 'Skenario' },
