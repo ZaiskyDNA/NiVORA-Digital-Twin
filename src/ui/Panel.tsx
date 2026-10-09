@@ -15,18 +15,25 @@ interface Props {
   collapsible?: boolean;
   /** Kontrol tambahan di baris judul (mis. tombol info). */
   headerExtra?: ReactNode;
+  /** Di dalam bottom sheet ponsel: tanpa bingkai & tanpa tombol lipat. */
+  embedded?: boolean;
 }
 
-export function Panel({ title, subtitle, children, className = '', collapsible = true, headerExtra }: Props) {
+export function Panel({ title, subtitle, children, className = '', collapsible: collapsibleProp = true, headerExtra, embedded = false }: Props) {
   const id = useId();
   const narrow = useMediaQuery(NARROW_QUERY);
   const [override, setOverride] = useState<boolean | null>(null);
+  const collapsible = collapsibleProp && !embedded;
   const open = !collapsible || (override ?? !narrow);
 
   return (
     <section
       aria-labelledby={`${id}-title`}
-      className={`pointer-events-auto rounded-panel border border-line-strong bg-surface-0/92 p-panel shadow-panel ${className}`}
+      className={
+        embedded
+          ? 'pointer-events-auto'
+          : `pointer-events-auto rounded-panel border border-line-strong bg-surface-0/92 p-panel shadow-panel ${className}`
+      }
     >
       <header className="flex items-start justify-between gap-3">
         <h2 id={`${id}-title`} className="min-w-0 pt-0.5 text-title uppercase text-accent">
