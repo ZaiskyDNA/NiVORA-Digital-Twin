@@ -25,6 +25,13 @@ export const UI_CHART_MS = 500;
 export const NARROW_QUERY = '(max-width: 1279px)';
 
 /**
+ * Tata letak ponsel (§13.16): layar sempit (potret) atau pendek (lanskap ponsel). Desktop/tablet
+ * memakai layout panel samping.
+ */
+export const MOBILE_QUERY = '(max-width: 767px), (max-height: 520px)';
+export const useIsMobile = (): boolean => useMediaQuery(MOBILE_QUERY);
+
+/**
  * Nilai turunan store yang diperbarui paling sering setiap `ms` (mis. grafik & KPI ±2 Hz, §13.8).
  * `select` harus stabil (fungsi modul atau useCallback).
  */
