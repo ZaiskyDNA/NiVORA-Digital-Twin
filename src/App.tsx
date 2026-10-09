@@ -1,6 +1,8 @@
-import { lazy, Suspense, useSyncExternalStore } from 'react';
+import { lazy, Suspense, useEffect, useSyncExternalStore } from 'react';
 import { DISCLAIMER } from './config/i18n';
+import { startSimClock } from './store/clock';
 import { CameraPresetBar } from './ui/CameraPresetBar';
+import { SimControls } from './ui/SimControls';
 
 const DebugPage = lazy(() => import('./debug/DebugPage'));
 const PlantScene = lazy(() => import('./scene/PlantScene'));
@@ -14,7 +16,10 @@ const subscribeHash = (cb: () => void) => {
 
 export default function App() {
   const hash = useSyncExternalStore(subscribeHash, () => window.location.hash);
-  if (hash === '#debug') {
+  const isDebug = hash === '#debug';
+  // Jam simulasi untuk halaman utama (halaman debug memasang jamnya sendiri).
+  useEffect(() => (isDebug ? undefined : startSimClock()), [isDebug]);
+  if (isDebug) {
     return (
       <Suspense fallback={null}>
         <DebugPage />
@@ -58,8 +63,10 @@ export default function App() {
 
         <div className="flex-1" />
 
-        <footer className="flex items-end justify-between px-8 pb-5">
-          <div className="pointer-events-auto flex items-center gap-3">
+        <footer className="flex items-end justify-between gap-6 px-8 pb-5">
+          <div className="pointer-events-auto flex flex-wrap items-center gap-3">
+            <SimControls />
+            <span className="mx-1 h-6 w-px bg-line-strong" aria-hidden />
             <span className="text-label uppercase text-fg-3">Kamera</span>
             <CameraPresetBar />
             <a className="pointer-events-auto ml-3 text-caption text-accent underline" href="#debug">
