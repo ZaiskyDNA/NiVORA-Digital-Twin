@@ -1,9 +1,11 @@
 /** Data label callout scene (fasilitas, node, zona) — dirender oleh LabelLayer + LabelLeaders. */
-import { FACILITY_CAPTION, FACILITY_LABEL, ZONE_LABEL } from '../config/i18n';
-import { FACILITIES, WORKER_ZONES, type Facility } from '../config/plant';
+import { FACILITY_CAPTION, FACILITY_LABEL, ROUTE_LABEL, ZONE_LABEL } from '../config/i18n';
+import { FACILITIES, ROUTE_CANDIDATES, WORKER_ZONES, type Facility } from '../config/plant';
+import type { SimState } from '../sim/engine';
+import { compositeCost, type Route } from '../sim/routing';
 import type { NodeState, Vec3 } from '../sim/types';
 import { COLOR } from '../styles/tokens';
-import { beaconHeight, offsetOnScreen } from './layout';
+import { beaconHeight, offsetOnScreen, ROUTE_Y, VERTEX_POS } from './layout';
 import { FACILITY_STYLE, STATUS_COLOR } from './palette';
 
 export interface SceneLabel {
@@ -29,7 +31,7 @@ const LABEL_OFFSET: Record<string, [number, number]> = {
   'facility-disposal': [-4, 4],
   'facility-crusher': [-6, 1],
   'facility-stockpile': [8, 1.5],
-  'node-A': [4, 3],
+  'node-A': [5, 4.5],
   'node-B': [5, 3],
   'node-C': [6, 2],
   'zone-wz-high': [-4, 1.5],
@@ -89,4 +91,68 @@ export function buildSceneLabels(nodes: readonly NodeState[]): SceneLabel[] {
     : [];
 
   return [...facilities, ...nodeLabels, ...zoneLabels];
+}
+
+/** Id kandidat Lampiran 7 (A/B/C) bila urutan vertex rute sama persis. */
+function candidateOf(route: Route): string | null {
+  for (const [id, vertices] of Object.entries(ROUTE_CANDIDATES)) {
+    if (vertices.length === route.vertices.length && vertices.every((v, i) => v === route.vertices[i])) return id;
+  }
+  return null;
+}
+
+/** Titik tengah ruas ke-`which` sebuah rute ('mid' = ruas tengah) — posisi label. */
+function midpoint(route: Route, which: 'first' | 'mid' = 'mid'): Vec3 | null {
+  const i = which === 'first' ? 0 : Math.floor((route.vertices.length - 1) / 2);
+  const a = VERTEX_POS[route.vertices[i] ?? ''];
+  const b = VERTEX_POS[route.vertices[i + 1] ?? ''];
+  if (!a || !b) return null;
+  return [(a[0] + b[0]) / 2, ROUTE_Y, (a[2] + b[2]) / 2];
+}
+
+/** Label rute terpilih & rute terpendek (bila berbeda) — biaya komposit dengan bobot saat ini. */
+export function buildRouteLabels(s: SimState): SceneLabel[] {
+  const rec = s.recommendation;
+  if (!rec) return [];
+  const cost = compositeCost(s.weights.route);
+  const costOf = (r: Route) => r.edges.reduce((sum, e) => sum + cost(e), 0).toFixed(1);
+  const out: SceneLabel[] = [];
+  const same = rec.route && rec.shortest && rec.route.vertices.join() === rec.shortest.vertices.join();
+
+  if (rec.route && s.policy === 'nivora') {
+    const at = midpoint(rec.route);
+    if (at) {
+      out.push({
+        id: 'route-safe',
+        anchor: at,
+        at: offsetOnScreen(at, -8, 0.8),
+        title: ROUTE_LABEL.safe(candidateOf(rec.route), costOf(rec.route)),
+        color: COLOR.safe,
+      });
+    }
+  }
+  if (rec.shortest && (s.policy !== 'nivora' || !same)) {
+    // Ruas pertama (menembus zona pekerja) agar tidak bertumpuk dengan label safe route.
+    const at = midpoint(rec.shortest, 'first');
+    if (at) {
+      out.push({
+        id: 'route-shortest',
+        anchor: at,
+        at: offsetOnScreen(at, 1, 1),
+        title: ROUTE_LABEL.shortest(candidateOf(rec.shortest), costOf(rec.shortest)),
+        color: COLOR.critical,
+      });
+    }
+  }
+  return out;
+}
+
+/** Kunci perubahan label (status node, pekerja zona, rute & biaya) — selector store yang stabil. */
+export function sceneLabelKey(s: SimState): string {
+  const statuses = s.nodes.map((n) => n.status).join(',');
+  const workers = s.nodes.find((n) => n.zoneId === 'wz-high')?.workers ?? 0;
+  const routes = buildRouteLabels(s)
+    .map((l) => l.title)
+    .join('|');
+  return `${statuses}#${workers}#${routes}`;
 }
