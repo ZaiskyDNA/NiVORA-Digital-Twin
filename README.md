@@ -41,6 +41,19 @@ Kontrol tur: jeda, lewati, keluar (atau **Esc**).
 |---|---|---|
 | ![](docs/screenshots/03-tour-node-a-critical.jpg) | ![](docs/screenshots/04-tour-route-disruption.jpg) | ![](docs/screenshots/05-tour-kpi-reaktif-vs-nivora.jpg) |
 
+## Tampilan ponsel
+
+Di ponsel (lebar < 768 px atau tinggi < 520 px) tata letaknya diringkas agar tidak menumpuk:
+TopBar dua baris (tur 60 detik, menu, jalankan, skenario), scene memenuhi layar dengan pill node
+saja, dan **bottom sheet** berisi ringkasan keputusan — kapan · prioritas · ke mana · lewat rute
+mana. Ketuk tab *Rekomendasi*, *Prioritas*, atau *Bandingkan* untuk isi lengkap; ketuk node untuk
+detail komposisi MWERI. Satu jari menggeser peta, dua jari cubit-zoom. Kecepatan, preset kamera,
+dan bobot ada di menu ☰.
+
+| Ponsel | Ketuk Node C |
+|---|---|
+| <img src="docs/screenshots/06-mobile.jpg" width="260" alt="Tampilan ponsel" /> | <img src="docs/screenshots/07-mobile-node-c.jpg" width="260" alt="Detail Node C di bottom sheet" /> |
+
 ## Menjalankan
 
 Butuh **Node.js ≥ 20.19** (lihat `engines` di `package.json`).
@@ -125,4 +138,7 @@ Tidak ada environment variable yang dibutuhkan.
 - Seluruh angka, posisi, dan dinamika sensor **ilustratif**; bobot MWERI perlu dikalibrasi data
   lapangan & ahli K3.
 - Edge-AI adalah aturan ambang (*rule-based mock*), bukan model terlatih.
-- Target layar desktop ≥ 1280 px (panel dapat dilipat di bawahnya); tidak ada versi mobile.
+- Layout desktop optimal ≥ 1280 px (panel dapat dilipat di bawahnya); ponsel memakai layout
+  ringkas tersendiri.
+- Scene 3D butuh WebGL. Bila akselerasi grafis browser mati, aplikasi menampilkan gambar diam scene
+  dan langkah perbaikannya (panel tetap berjalan).
