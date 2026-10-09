@@ -1,17 +1,15 @@
 import { lazy, Suspense, useEffect, useSyncExternalStore } from 'react';
 import { DISCLAIMER } from './config/i18n';
 import { startSimClock } from './store/clock';
-import { ImpactPanel } from './ui/ImpactPanel';
-import { Legend } from './ui/Legend';
+import { useView } from './store/useView';
+import { KpiStrip } from './ui/KpiStrip';
+import { LegendLine } from './ui/LegendLine';
 import { LiveAnnouncer } from './ui/LiveAnnouncer';
 import { MweriPanel } from './ui/MweriPanel';
-import { PathwayBar } from './ui/PathwayBar';
 import { ReactiveBanner } from './ui/ReactiveBanner';
-import { RoutingPanel } from './ui/RoutingPanel';
-import { ScenarioBar } from './ui/ScenarioBar';
+import { RecommendationCard } from './ui/RecommendationCard';
 import { TopBar } from './ui/TopBar';
 import { WeightsDrawer } from './ui/WeightsDrawer';
-import { useView } from './store/useView';
 
 const DebugPage = lazy(() => import('./debug/DebugPage'));
 const PlantScene = lazy(() => import('./scene/PlantScene'));
@@ -21,20 +19,32 @@ const subscribeHash = (cb: () => void) => {
   return () => window.removeEventListener('hashchange', cb);
 };
 
+/** Tombol pintas tidak aktif saat mengetik di input teks. */
+const isTyping = (t: EventTarget | null) =>
+  t instanceof HTMLElement &&
+  (t.isContentEditable || (t instanceof HTMLInputElement && t.type !== 'range') || t instanceof HTMLTextAreaElement);
+
 export default function App() {
   const hash = useSyncExternalStore(subscribeHash, () => window.location.hash);
   const isDebug = hash === '#debug';
+  const focus = useView((s) => s.focusMode);
+  const compare = useView((s) => s.compareMode);
+
   // Jam simulasi untuk halaman utama (halaman debug memasang jamnya sendiri).
   useEffect(() => (isDebug ? undefined : startSimClock()), [isDebug]);
-  // Esc menutup detail node (drawer bobot menangani Esc-nya sendiri).
+  // Esc menutup detail node (drawer bobot menangani Esc-nya sendiri); H = mode fokus.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const v = useView.getState();
       if (e.key === 'Escape' && !v.weightsOpen) v.selectNode(null);
+      if ((e.key === 'h' || e.key === 'H') && !e.ctrlKey && !e.metaKey && !e.altKey && !isTyping(e.target)) {
+        v.setFocusMode(!v.focusMode);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
   if (isDebug) {
     return (
       <Suspense fallback={null}>
@@ -51,27 +61,30 @@ export default function App() {
         </Suspense>
       </main>
 
-      {/* Lapisan UI di atas scene: hanya panel yang menangkap pointer. */}
+      {/*
+        Declutter: maksimal tiga blok selalu terlihat — TopBar, panel MWERI, kartu Rekomendasi.
+        KPI hanya saat "Bandingkan reaktif"; mode fokus (H) menyisakan kartu Rekomendasi.
+      */}
       <div className="pointer-events-none absolute inset-0 z-[var(--z-panel)] flex flex-col">
         <TopBar />
         <ReactiveBanner />
 
-        <div className="flex min-h-0 flex-1 items-start justify-between gap-gutter px-gutter pt-5 pb-4">
+        <div className="flex min-h-0 flex-1 items-start justify-between gap-gutter px-gutter pt-4 pb-3">
+          <aside className="flex max-h-full min-h-0 flex-col overflow-y-auto">{!focus && <MweriPanel />}</aside>
           <aside className="flex max-h-full min-h-0 flex-col overflow-y-auto">
-            <MweriPanel />
-          </aside>
-          <aside className="flex max-h-full min-h-0 flex-col gap-stack overflow-y-auto">
-            <RoutingPanel />
-            <ImpactPanel />
+            <RecommendationCard />
           </aside>
         </div>
 
-        <footer className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-end gap-stack px-gutter pb-5 max-[1279px]:grid-cols-[minmax(0,1fr)_auto]">
-          <PathwayBar />
-          <ScenarioBar />
-          <div className="flex flex-col items-end gap-2 max-[1279px]:col-span-2 max-[1279px]:flex-row max-[1279px]:items-center max-[1279px]:justify-between">
-            <p className="text-caption text-fg-3">{DISCLAIMER.illustrative}</p>
-            <Legend />
+        <footer className="flex flex-col gap-3 px-gutter pb-4">
+          {compare && !focus && (
+            <div className="flex justify-center">
+              <KpiStrip />
+            </div>
+          )}
+          <div className="flex items-end justify-between gap-4">
+            <div className="pointer-events-auto">{!focus && <LegendLine />}</div>
+            <p className="shrink-0 text-caption text-fg-3">{DISCLAIMER.illustrative}</p>
           </div>
         </footer>
       </div>
