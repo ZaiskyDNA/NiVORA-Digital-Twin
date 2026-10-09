@@ -293,3 +293,51 @@ Tampilkan dalam persen perubahan terhadap baseline reaktif.
 - Jangan menyebut angka sebagai data lapangan nyata.
 - Jangan menaruh logika simulasi di dalam komponen React.
 - Jangan menambah backend; semua berjalan di browser.
+
+---
+
+## 13. Keputusan Teknis
+
+Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapkan 2026-10-09).
+
+### 13.1 Proyek & tooling
+- Root proyek = folder ini (bukan subfolder `nivora/`). Referensi visual di `docs/reference.png`. Repo git; `.gitignore` minimal `node_modules`, `dist`, `.env`.
+- **React 19 + `@react-three/fiber` v9** (menggantikan React 18 di §2). Peer dependency sudah dicek: drei v10, `@react-three/postprocessing` v3, recharts v3, zustand v5 kompatibel. Catatan: fiber 9.8 membatasi `react < 19.4`.
+- **Tailwind v4** via `@tailwindcss/vite`. Token design system (warna status, font, dsb.) ditaruh di blok `@theme` pada `src/index.css` — **tidak ada** `tailwind.config`.
+- Node lokal 20.x → **vitest 4.x** (vitest 5 butuh Node ≥22) dan **TypeScript 6.0.x** (typescript-eslint belum mendukung TS 7).
+- Font di-self-host lewat `@fontsource-variable/inter` & `@fontsource-variable/jetbrains-mono` (demo harus jalan offline).
+- Deploy: **Vercel** (tanpa base path). Siapkan `npm run build` + `vercel.json`; deploy baru setelah Fase 7.
+
+### 13.2 Status sensor vs prioritas MWERI (Node C)
+- Ambang Edge-AI §5.2 **tidak diubah**. Node C (residu 61%) berstatus **WARNING**, tetapi MWERI 2.6 → prioritas **RENDAH**. Ini pesan kunci esai: sistem berbasis volume akan memprioritaskan Node C, MWERI tidak karena tidak ada pekerja.
+- `NodeCard` menampilkan dua baris terpisah: `Status sensor: WARNING (volume)` dan `Prioritas MWERI: RENDAH`.
+- Urutan per tick: hitung **MWERI dulu**, baru Edge-AI (karena aturan `critical` memakai `MWERI ≥ 8`).
+
+### 13.3 Skor rute & routing
+- D/R/O sebuah rute = **jumlah (sum)** skor edge sepanjang rute (aditif → valid untuk Dijkstra). Skor edge di `plant.ts` dirancang agar total tiap rute sama persis dengan Lampiran 7: A = 2/9/3 (cost 5.7), B = 4/2/3 (cost 2.8), C = 5/4/2 (cost 3.9).
+- Di test, R dibekukan pada snapshot awal. R dinamis (dari jumlah pekerja di zona) hanya berlaku saat simulasi berjalan.
+- Di UI, skor rute yang totalnya > 10 ditampilkan ternormalisasi ke skala 0–10.
+
+### 13.4 Waktu & paparan
+- Skala waktu: 1 tick = 1 menit simulasi. **1× = 1 tick per detik nyata**, 5× = 5/detik, 20× = 20/detik. Scene menginterpolasi di antara tick.
+- Input T pada MWERI memakai **jendela bergulir 60 menit** (`exposureWindowMin` di `weights.ts`, konfigurabel), bukan kumulatif.
+- KPI "worker exposure duration" di `ImpactPanel` tetap **kumulatif per shift**, reset setiap 8 jam simulasi.
+- `history` di-warm-up (prefill) saat inisialisasi agar `ttc` langsung tersedia di awal demo.
+
+### 13.5 Reaktif vs NiVORA & determinisme
+- Engine reaktif berjalan **headless** paralel dengan seed yang sama; scene 3D hanya menampilkan mode aktif.
+- **Dua stream RNG terpisah:** `envRng` (sensor/lingkungan/pekerja) dan `decisionRng` (keputusan/penanganan). Kedua mode menerima input sensor identik → perbedaan KPI murni berasal dari kebijakan penanganan.
+- State RNG disimpan di dalam state engine (bukan closure) agar fork what-if (`structuredClone`) deterministik.
+
+### 13.6 Pathway
+- Tujuan default: **A → Reprocessing, B → Recovery, C → Treatment**. Flag material disimpan di `plant.ts`.
+- `PathwayBar` menampilkan alasan setiap keputusan.
+
+### 13.7 Bahasa & layout
+- Bahasa campuran: label Indonesia, istilah teknis Inggris (MWERI, Digital Twin, Edge-AI, Safe Route, Reprocessing, dll.). Semua string UI lewat glosarium `src/config/i18n.ts`.
+- Di bawah 1280px: panel bisa dilipat. Tidak ada versi mobile.
+
+### 13.8 Sinkronisasi store–scene (pedoman performa)
+- Objek 3D yang berubah tiap frame membaca store via `useSim.getState()` / `subscribe` di dalam `useFrame` dan menulis ke ref — **bukan** lewat selector React.
+- Komponen React hanya berlangganan nilai turunan yang jarang berubah (dengan `useShallow`). Grafik recharts di-throttle ±2 Hz.
+- Pekerja: `InstancedMesh`. Debu: satu `Points` per node dengan buffer prealokasi + `drawRange`. Bloom selektif (`toneMapped={false}` + threshold tinggi), `dpr` dibatasi `[1, 1.5]`.
