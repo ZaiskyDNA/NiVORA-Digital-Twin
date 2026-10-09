@@ -1,5 +1,5 @@
 /** Konstanta tata letak scene yang dipakai beberapa komponen (dipisah agar fast refresh tetap jalan). */
-import { NODE_MARKER, NODE_SEEDS } from '../config/plant';
+import { NODE_MARKER, NODE_SEEDS, ROUTE_GRAPH } from '../config/plant';
 import type { Vec3 } from '../sim/types';
 import type { CameraPreset } from '../store/useView';
 
@@ -67,3 +67,11 @@ const SCREEN_RIGHT: Vec3 = [Math.SQRT1_2, 0, -Math.SQRT1_2];
 export function offsetOnScreen([x, y, z]: Vec3, right: number, up: number): Vec3 {
   return [x + SCREEN_RIGHT[0] * right, y + up, z + SCREEN_RIGHT[2] * right];
 }
+
+/** Posisi vertex graf rute (dipakai rute & truk). */
+export const VERTEX_POS: Readonly<Record<string, Vec3>> = Object.fromEntries(
+  ROUTE_GRAPH.vertices.map((v) => [v.id, v.position]),
+);
+
+/** Ketinggian garis rute di atas jalan. */
+export const ROUTE_Y = 0.18;
