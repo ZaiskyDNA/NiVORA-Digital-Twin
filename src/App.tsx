@@ -1,9 +1,12 @@
 import { lazy, Suspense, useEffect, useSyncExternalStore } from 'react';
-import { DISCLAIMER } from './config/i18n';
+import { DISCLAIMER, UI } from './config/i18n';
 import { stopTour } from './demo/tour';
+import { hasWebGL2 } from './scene/webgl';
 import { startSimClock } from './store/clock';
 import { useTour } from './store/useTour';
 import { useView } from './store/useView';
+import { ErrorBoundary } from './ui/ErrorBoundary';
+import { Fallback } from './ui/Fallback';
 import { KpiStrip } from './ui/KpiStrip';
 import { LegendLine } from './ui/LegendLine';
 import { LiveAnnouncer } from './ui/LiveAnnouncer';
@@ -16,6 +19,8 @@ import { WeightsDrawer } from './ui/WeightsDrawer';
 
 const DebugPage = lazy(() => import('./debug/DebugPage'));
 const PlantScene = lazy(() => import('./scene/PlantScene'));
+
+const webgl = typeof document !== 'undefined' && hasWebGL2();
 
 const subscribeHash = (cb: () => void) => {
   window.addEventListener('hashchange', cb);
@@ -63,9 +68,16 @@ export default function App() {
   return (
     <div className="relative h-full">
       <main className="absolute inset-0 z-[var(--z-scene)]">
-        <Suspense fallback={<p className="grid h-full place-items-center text-caption text-fg-3">Memuat scene 3D…</p>}>
-          <PlantScene />
-        </Suspense>
+        {/* Scene gagal ≠ aplikasi gagal: panel tetap tampil, area scene berisi petunjuk perbaikan. */}
+        {webgl ? (
+          <ErrorBoundary fallback={(e) => <Fallback title={UI.fallback.sceneTitle} error={e} />}>
+            <Suspense fallback={<p className="grid h-full place-items-center text-caption text-fg-3">Memuat scene 3D…</p>}>
+              <PlantScene />
+            </Suspense>
+          </ErrorBoundary>
+        ) : (
+          <Fallback title={UI.fallback.sceneTitle} error={null} />
+        )}
       </main>
 
       {/*
