@@ -17,7 +17,7 @@ const selectView = (s: SimStore) => JSON.stringify(recommendationView(selectView
 const selectRoutes = (s: SimStore) =>
   JSON.stringify({ ...routingRows(selectViewed(s)), formula: routeFormula(selectViewed(s)) });
 
-function Urgency({ v }: { v: RecommendationView }) {
+export function Urgency({ v }: { v: RecommendationView }) {
   const [label, cls] =
     v.urgency === 'now'
       ? [UI.rec.now, `${STATUS_TONE.critical.soft} ${STATUS_TONE.critical.text}`]
@@ -47,7 +47,8 @@ function PathwaySteps({ index }: { index: number }) {
   );
 }
 
-export function RecommendationCard() {
+/** `embedded`: di dalam bottom sheet ponsel — tanpa bingkai/lebar panel. */
+export function RecommendationCard({ embedded = false }: { embedded?: boolean }) {
   const v = JSON.parse(useThrottledSim(selectView, UI_TEXT_MS)) as RecommendationView | null;
   const routes = JSON.parse(useThrottledSim(selectRoutes, UI_TEXT_MS)) as ReturnType<typeof routingRows> & {
     formula: string;
@@ -63,7 +64,9 @@ export function RecommendationCard() {
   return (
     <section
       aria-labelledby={`${detailsId}-title`}
-      className={`pointer-events-auto w-panel-w rounded-panel border bg-surface-0/95 p-panel shadow-panel ${tone}`}
+      className={
+        embedded ? 'pointer-events-auto' : `pointer-events-auto w-panel-w rounded-panel border bg-surface-0/95 p-panel shadow-panel ${tone}`
+      }
     >
       <header className="flex items-center justify-between gap-3">
         <h2 id={`${detailsId}-title`} className={`text-title uppercase ${titleTone}`}>
