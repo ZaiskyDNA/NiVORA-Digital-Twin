@@ -341,3 +341,7 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 - Objek 3D yang berubah tiap frame membaca store via `useSim.getState()` / `subscribe` di dalam `useFrame` dan menulis ke ref — **bukan** lewat selector React.
 - Komponen React hanya berlangganan nilai turunan yang jarang berubah (dengan `useShallow`). Grafik recharts di-throttle ±2 Hz.
 - Pekerja: `InstancedMesh`. Debu: satu `Points` per node dengan buffer prealokasi + `drawRange`. Bloom selektif (`toneMapped={false}` + threshold tinggi), `dpr` dibatasi `[1, 1.5]`.
+
+### 13.9 Design system
+- Spesifikasi: `docs/design-system.md`. Token: `src/styles/tokens.css` (blok `@theme`, diimpor `src/index.css`). Palet bawaan Tailwind di-reset → hanya token NiVORA yang tersedia.
+- Aturan inti: cyan `safe` dicadangkan untuk keputusan NiVORA; status = warna + bentuk + teks; teks merah pakai `critical-fg`; label di wadah ber-tint pakai `fg-2`; teks ≥ 12px; tanpa `backdrop-filter` di atas canvas.
