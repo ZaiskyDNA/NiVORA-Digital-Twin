@@ -345,3 +345,12 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 ### 13.9 Design system
 - Spesifikasi: `docs/design-system.md`. Token: `src/styles/tokens.css` (blok `@theme`, diimpor `src/index.css`). Palet bawaan Tailwind di-reset → hanya token NiVORA yang tersedia.
 - Aturan inti: cyan `safe` dicadangkan untuk keputusan NiVORA; status = warna + bentuk + teks; teks merah pakai `critical-fg`; label di wadah ber-tint pakai `fg-2`; teks ≥ 12px; tanpa `backdrop-filter` di atas canvas.
+
+### 13.10 Engine & store (Fase 2)
+- Engine mulai dari **baseline awal shift** (`NODE_SEEDS`, belum ada node critical). Nilai Lampiran 4 disimpan sebagai `ESSAY_SNAPSHOT` (acuan & test); kondisi serupa muncul saat Production Surge (Node A critical ±10 menit).
+- `step()` murni (structuredClone). Ambang & parameter kebijakan di `config/thresholds.ts` (`POLICY`, `SIM`); dinamika sensor, truk, dan zona di `config/plant.ts` (`NODE_DYNAMICS`, `HAULING`, `WORKER_ZONES`).
+- NiVORA mengirim truk bila node critical, atau node prioritas #1 dengan `ttc < 20`, **dan** residu ≥ 30% (`nivoraMinLoadLevel`). Urgensi rekomendasi "now" mengikuti aturan yang sama.
+- Reaktif: residu ≥ 90% atau jadwal tetap tiap 120 menit (bergiliran), rute terpendek; **tujuan tetap mengikuti pathway** (yang dibedakan hanya waktu & rute, sesuai §8).
+- R dinamis: R edge berzona = R snapshot × pekerja sekarang / pekerja baseline zona.
+- Truk dialihkan segera saat ruasnya diblokir (termasuk saat muat dan saat skenario diganti); bila sedang di ruas yang diblokir, truk mundur (`retreat`) ke awal ruas.
+- Store `useSim` memegang engine `nivora` + `reactive` (seed & skenario & bobot sama); `setWeights` menormalisasi Σ = 1. Jam: `store/clock.ts` (rAF). Halaman debug sementara: `#debug`.
