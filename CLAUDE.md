@@ -377,3 +377,11 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 - Laju pembaruan UI: teks panel/kartu/label ≤ 5 Hz (`UI_TEXT_MS`), grafik & KPI ±2 Hz (`UI_CHART_MS`), lewat `useThrottledSim`. Tanpa ini fps turun ke 19 pada 20× (recharts digambar ulang tiap tick); `MweriChart` juga di-`memo`.
 - Panel bisa dilipat; default terlipat di bawah 1280px. Isi panel terlipat tidak di-render. Preset kamera pindah ke TopBar; legenda hanya status.
 - Satu `role="status"` global (`ui/LiveAnnouncer.tsx`) untuk node yang menjadi critical & re-routing.
+
+### 13.14 Interaksi (Fase 6)
+- Pemilihan node (`useView.selectNode`): klik menara/beacon di scene, judul NodeCard, baris ranking, atau tautan insight → kamera `focusPose` (node di kiri-tengah) + kartu detail di kanan beacon. Esc / tombol × menutup dan kembali ke overview. Kartu lain menjadi ringkas.
+- Kartu detail menampilkan komposisi MWERI per suku (w × skor) — Node C terlihat langsung `W 0.3×0 = 0`. Panel MWERI memuat insight "Volume ≠ risiko" (`volumeRiskInsight`) selama node residu tertinggi tanpa pekerja bukan prioritas #1.
+- WeightsDrawer: `rebalanceWeights` menyebar sisa bobot secara proporsional (Σ = 1); pratinjau ranking & rute ≤ 5 Hz. Rute terpilih yang melewati zona pekerja (mis. β = 0) **tidak** diberi label "safe".
+- What-if: `whatIf()` = fork `step()` 30 tick; state utama tidak berubah (diuji). Lintasan tampil sebagai garis titik-titik di grafik.
+- Toggle NiVORA/Reaktif mengganti `view`; banner merah + kotak tindakan bernada merah di mode reaktif (cyan tetap khusus keputusan NiVORA). KPI selalu menampilkan nilai kedua mode; tren dinilai relatif terhadap baseline reaktif (Planet pun).
+- Performa terukur (semua panel, Surge): 56 fps @1×, 54 @5×, 52 @20×; semua fitur Fase 6 terbuka bersamaan: 51 @20×.
