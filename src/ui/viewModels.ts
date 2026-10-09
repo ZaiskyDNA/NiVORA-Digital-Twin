@@ -489,3 +489,51 @@ export function withSimulated(points: readonly ChartPoint[], traj: readonly { t:
   for (const q of traj) byT.set(q.t, { ...(byT.get(q.t) ?? { t: q.t }), sim: q.mweri });
   return [...byT.values()].sort((a, b) => a.t - b.t);
 }
+
+// ── Kartu Rekomendasi (declutter: satu fokus) ───────────────────────────
+
+export interface RecommendationView {
+  nodeId: string;
+  rank: number;
+  mweri: string;
+  cls: MweriClass;
+  status: Status;
+  urgency: 'now' | 'soon' | 'monitor';
+  /** Menit hingga kritis bila urgensi "soon". */
+  ttc: number | null;
+  destination: string;
+  stage: PathwayStage;
+  stageLabel: string;
+  stageReason: string;
+  /** 0–4: posisi tahap aktif di Circular Material Decision Pathway. */
+  stageIndex: number;
+  routeId: string | null;
+  routeCost: string | null;
+  throughZone: boolean;
+  reactive: boolean;
+}
+
+/** Jawaban ringkas kapan · prioritas · ke mana · lewat mana untuk node prioritas #1. */
+export function recommendationView(s: SimState): RecommendationView | null {
+  const rec = s.recommendation;
+  const n = rec && s.nodes.find((x) => x.id === rec.nodeId);
+  if (!rec || !n) return null;
+  return {
+    nodeId: n.id,
+    rank: rec.rank,
+    mweri: displayMweri(n.mweri).toFixed(1),
+    cls: displayClass(n.mweri),
+    status: n.status,
+    urgency: rec.urgency,
+    ttc: rec.ttc === null ? null : Math.max(0, Math.round(rec.ttc)),
+    destination: FACILITY_LABEL[rec.destination] ?? rec.destination,
+    stage: rec.stage,
+    stageLabel: PATHWAY_LABEL[rec.stage],
+    stageReason: PATHWAY_REASON[rec.stage],
+    stageIndex: PATHWAY_STAGES.indexOf(rec.stage),
+    routeId: rec.selectedCandidate,
+    routeCost: rec.route ? rec.route.cost.toFixed(1) : null,
+    throughZone: rec.route?.edges.some((e) => e.zoneId) ?? false,
+    reactive: s.policy === 'reactive',
+  };
+}
