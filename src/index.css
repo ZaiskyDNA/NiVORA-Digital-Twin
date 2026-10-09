@@ -28,6 +28,12 @@
     font-variant-numeric: tabular-nums slashed-zero;
   }
 
+  /* Scrollbar tipis yang menyatu dengan tema gelap (panel yang bisa di-scroll). */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-control) transparent;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
