@@ -1,0 +1,35 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+@import './styles/tokens.css';
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    color: var(--color-fg);
+    background-color: var(--color-canvas);
+    background-image: radial-gradient(ellipse at 50% 40%, var(--color-canvas-glow) 0%, var(--color-canvas) 70%);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'cv11', 'ss01'; /* Inter: angka 1 & huruf a lebih terbaca di ukuran kecil */
+    overflow: hidden;
+  }
+
+  /* Angka selalu sejajar kolom. */
+  .font-mono {
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
