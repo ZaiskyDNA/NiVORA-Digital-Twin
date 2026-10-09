@@ -13,5 +13,7 @@ export default defineConfig({
     include: ['src/**/__tests__/**/*.test.ts'],
     environment: 'node',
     passWithNoTests: true,
+    // Vitest mengosongkan CSS secara default; tokens.css perlu dibaca utuh oleh tokens.test.ts.
+    css: { include: [/tokens\.css/] },
   },
 });
