@@ -80,6 +80,65 @@ export const CAMERA_PRESET_LABEL = {
   route: 'Rute',
 } as const;
 
+/** Teks panel & kartu (Fase 5). */
+export const UI = {
+  app: {
+    title: 'NiVORA',
+    titleAccent: 'Digital Twin',
+    subtitle: 'Predictive Circular Material Management · Sirkuit Conveyor 1 · Smelter Nikel',
+  },
+  pillars: ['Predict', 'Protect', 'Circulate'] as const,
+  live: { running: 'LIVE SIM', paused: 'JEDA', play: 'Jalankan simulasi', pause: 'Jeda simulasi', speed: 'Kecepatan simulasi' },
+  mweri: {
+    title: 'Prioritas penanganan · MWERI',
+    chartTitle: (id: string) => `Prediksi Digital Twin · Node ${id}`,
+    threshold: 'ambang kritis 8.0',
+    chartNote: 'Garis putus = proyeksi · nilai ilustratif',
+  },
+  routing: {
+    title: 'Graph-based safe routing',
+    caption: 'Rute kandidat Node A → Unit Reprocessing',
+    route: 'Rute',
+    cost: 'Cost',
+    shortest: 'terpendek',
+    safe: 'safe',
+    alternative: 'alternatif',
+    blocked: 'terblokir',
+    scaled: 'Skor dinormalisasi ke skala 0–10.',
+    noCandidates: 'Rute kandidat Lampiran 7 hanya untuk Node A → Unit Reprocessing.',
+    recommendationTitle: 'Rekomendasi operasional',
+  },
+  impact: {
+    title: 'Dampak 3P (sesi ini)',
+    people: 'People',
+    planet: 'Planet',
+    productivity: 'Productivity',
+    exposure: 'paparan vs reaktif',
+    recovery: 'recovery rate',
+    unnecessary: 'trip tak perlu vs reaktif',
+    waiting: 'menunggu data',
+  },
+  card: {
+    mweri: 'MWERI',
+    residue: 'Residu',
+    pm: 'PM',
+    workers: 'Pekerja',
+    sensor: 'Status sensor',
+    priority: 'Prioritas MWERI',
+    stable: 'Tren stabil — belum ada proyeksi kritis',
+    criticalNow: 'Digital Twin: sudah melewati ambang kritis',
+    criticalIn: (min: number) => `Digital Twin: kritis dalam ±${min} menit`,
+    noWorkers: 'Residu tinggi, tetapi tidak ada pekerja di zona',
+  },
+  pathway: { title: 'Circular material decision pathway', reason: 'Alasan', notFeasible: 'tidak layak' },
+  scenario: { title: 'Skenario' },
+  legend: { title: 'Legenda', worker: 'Pekerja', camera: 'Kamera' },
+  panel: { collapse: 'Lipat panel', expand: 'Buka panel' },
+} as const;
+
+/** Level PM dari skor 0–10 — selaras ambang Edge-AI (5 warning, 8 critical). */
+export const PM_LEVEL_LABEL = { low: 'Rendah', medium: 'Sedang', high: 'Tinggi' } as const;
+
 export const DISCLAIMER = {
   mweri:
     'MWERI adalah indeks prioritas, bukan instrumen diagnosis medis. Bobot perlu dikalibrasi data lapangan & ahli K3.',
