@@ -1,13 +1,17 @@
 import { lazy, Suspense, useEffect, useSyncExternalStore } from 'react';
 import { DISCLAIMER } from './config/i18n';
 import { startSimClock } from './store/clock';
-import { CameraPresetBar } from './ui/CameraPresetBar';
-import { SimControls } from './ui/SimControls';
+import { ImpactPanel } from './ui/ImpactPanel';
+import { Legend } from './ui/Legend';
+import { LiveAnnouncer } from './ui/LiveAnnouncer';
+import { MweriPanel } from './ui/MweriPanel';
+import { PathwayBar } from './ui/PathwayBar';
+import { RoutingPanel } from './ui/RoutingPanel';
+import { ScenarioBar } from './ui/ScenarioBar';
+import { TopBar } from './ui/TopBar';
 
 const DebugPage = lazy(() => import('./debug/DebugPage'));
 const PlantScene = lazy(() => import('./scene/PlantScene'));
-
-const PILLARS = ['Predict', 'Protect', 'Circulate'] as const;
 
 const subscribeHash = (cb: () => void) => {
   window.addEventListener('hashchange', cb);
@@ -35,47 +39,30 @@ export default function App() {
         </Suspense>
       </main>
 
-      {/* Lapisan UI di atas scene: hanya elemen interaktif yang menangkap pointer. */}
+      {/* Lapisan UI di atas scene: hanya panel yang menangkap pointer. */}
       <div className="pointer-events-none absolute inset-0 z-[var(--z-panel)] flex flex-col">
-        <header className="flex items-center justify-between px-8 pt-6">
-          <div className="flex items-center gap-4">
-            <div className="grid size-12 place-items-center rounded-tile bg-linear-to-br from-safe to-normal text-xl font-extrabold text-on-status">
-              Ni
-            </div>
-            <div>
-              <h1 className="text-display font-bold tracking-tight">
-                NiVORA <span className="font-medium text-accent">Digital Twin</span>
-              </h1>
-              <p className="text-caption text-fg-2">Predictive Circular Material Management · Smelter Nikel</p>
-            </div>
-          </div>
-          <nav className="flex gap-2">
-            {PILLARS.map((p) => (
-              <span
-                key={p}
-                className="h-control rounded-full border border-line-control bg-surface-1 px-4 text-body leading-8 font-semibold"
-              >
-                {p}
-              </span>
-            ))}
-          </nav>
-        </header>
+        <TopBar />
 
-        <div className="flex-1" />
+        <div className="flex min-h-0 flex-1 items-start justify-between gap-gutter px-gutter pt-5 pb-4">
+          <aside className="flex max-h-full min-h-0 flex-col overflow-y-auto">
+            <MweriPanel />
+          </aside>
+          <aside className="flex max-h-full min-h-0 flex-col gap-stack overflow-y-auto">
+            <RoutingPanel />
+            <ImpactPanel />
+          </aside>
+        </div>
 
-        <footer className="flex items-end justify-between gap-6 px-8 pb-5">
-          <div className="pointer-events-auto flex flex-wrap items-center gap-3">
-            <SimControls />
-            <span className="mx-1 h-6 w-px bg-line-strong" aria-hidden />
-            <span className="text-label uppercase text-fg-3">Kamera</span>
-            <CameraPresetBar />
-            <a className="pointer-events-auto ml-3 text-caption text-accent underline" href="#debug">
-              debug engine
-            </a>
+        <footer className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-end gap-stack px-gutter pb-5 max-[1279px]:grid-cols-[minmax(0,1fr)_auto]">
+          <PathwayBar />
+          <ScenarioBar />
+          <div className="flex flex-col items-end gap-2 max-[1279px]:col-span-2 max-[1279px]:flex-row max-[1279px]:items-center max-[1279px]:justify-between">
+            <p className="text-caption text-fg-3">{DISCLAIMER.illustrative}</p>
+            <Legend />
           </div>
-          <p className="text-label font-normal tracking-normal text-fg-3">{DISCLAIMER.illustrative}</p>
         </footer>
       </div>
+      <LiveAnnouncer />
     </div>
   );
 }
