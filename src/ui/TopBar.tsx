@@ -4,7 +4,10 @@
  */
 import { UI } from '../config/i18n';
 import { selectViewed, SPEEDS, useSim, type SimStore } from '../store/useSim';
+import { useEffect, useRef } from 'react';
+import { useView } from '../store/useView';
 import { CameraPresetBar } from './CameraPresetBar';
+import { CompareToggle } from './CompareToggle';
 import { formatClock } from './format';
 import { UI_TEXT_MS, useThrottledSim } from './hooks';
 
@@ -28,6 +31,15 @@ export function TopBar() {
   const speed = useSim((s) => s.speed);
   const t = useThrottledSim(selectT, UI_TEXT_MS);
   const { toggle, setSpeed } = useSim.getState();
+  const weightsOpen = useView((s) => s.weightsOpen);
+  const setWeightsOpen = useView((s) => s.setWeightsOpen);
+  const weightsButton = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
+  // Kembalikan fokus ke tombol pemicu saat drawer bobot ditutup.
+  useEffect(() => {
+    if (wasOpen.current && !weightsOpen) weightsButton.current?.focus();
+    wasOpen.current = weightsOpen;
+  }, [weightsOpen]);
 
   return (
     <header className="pointer-events-none flex flex-wrap items-center justify-between gap-4 px-gutter pt-5">
@@ -60,6 +72,25 @@ export function TopBar() {
           ))}
         </ul>
 
+        <span className="mx-1 h-6 w-px bg-line-strong" aria-hidden />
+        <CompareToggle />
+        <button
+          ref={weightsButton}
+          type="button"
+          aria-expanded={weightsOpen}
+          onClick={() => setWeightsOpen(!weightsOpen)}
+          className={`flex h-control items-center gap-2 rounded-control border px-3 text-body transition-colors duration-[var(--duration-fast)] ${
+            weightsOpen ? 'border-accent bg-accent/16 font-semibold text-accent' : 'border-line-control bg-surface-1 text-fg-2 hover:bg-surface-2 hover:text-fg'
+          }`}
+        >
+          <svg viewBox="0 0 16 16" className="size-4" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+            <path d="M2 4h7m3 0h2M2 8h2m3 0h7M2 12h9m3 0h0" />
+            <circle cx="10.5" cy="4" r="1.5" />
+            <circle cx="5.5" cy="8" r="1.5" />
+            <circle cx="12.5" cy="12" r="1.5" />
+          </svg>
+          {UI.weights.open}
+        </button>
         <span className="mx-1 h-6 w-px bg-line-strong" aria-hidden />
         <CameraPresetBar />
         <span className="mx-1 h-6 w-px bg-line-strong" aria-hidden />
