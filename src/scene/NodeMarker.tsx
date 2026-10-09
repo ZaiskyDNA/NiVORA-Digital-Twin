@@ -4,7 +4,7 @@
  * useFrame — tanpa re-render React, tanpa alokasi per frame.
  */
 import { Edges } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useMemo, useRef, type ComponentRef } from 'react';
 import { Color, DoubleSide, type Mesh, type MeshBasicMaterial, type MeshStandardMaterial } from 'three';
 import { NODE_MARKER } from '../config/plant';
@@ -12,6 +12,7 @@ import type { Vec3 } from '../sim/types';
 import { COLOR } from '../styles/tokens';
 import { beaconHeight, POLE, TOWER } from './layout';
 import { BLOOM, PULSE_HZ, STATUS_COLOR } from './palette';
+import { useView } from '../store/useView';
 import { simFrame } from './simFrame';
 
 const RING_BASE = 1.6;
@@ -80,9 +81,22 @@ export function NodeMarker({ nodeId, index, position }: Props) {
     }
   });
 
+  const selectNode = useView((s) => s.selectNode);
+  const onClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    selectNode(nodeId);
+  };
+  const onOver = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    document.body.style.cursor = 'pointer';
+  };
+  const onOut = () => {
+    document.body.style.cursor = '';
+  };
+
   const initial = work.color;
   return (
-    <group position={[x, 0, z]}>
+    <group position={[x, 0, z]} onClick={onClick} onPointerOver={onOver} onPointerOut={onOut}>
       {isTower ? (
         <mesh position-y={TOWER.h / 2} castShadow>
           <boxGeometry args={[TOWER.w, TOWER.h, TOWER.w]} />
