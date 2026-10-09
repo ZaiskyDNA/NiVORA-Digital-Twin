@@ -15,3 +15,27 @@ export const DIGITAL_TWIN = {
   mweriCritical: EDGE_AI_THRESHOLDS.criticalMweri,
   levelCritical: EDGE_AI_THRESHOLDS.criticalLevel,
 } as const;
+
+/** Kebijakan penanganan (§5.6 langkah 5, §8 mode Reaktif). */
+export const POLICY = {
+  /** NiVORA: tangani node prioritas #1 bila ttc < N menit. */
+  nivoraTtcDispatch: 20,
+  /** NiVORA: truk hanya dikirim bila residu ≥ N % — mengangkut residu sedikit tidak menurunkan risiko. */
+  nivoraMinLoadLevel: 30,
+  /** Reaktif: tangani hanya bila residu ≥ N %. */
+  reactiveLevel: 90,
+  /** Reaktif: jadwal tetap — satu node (bergiliran) setiap N menit. */
+  reactiveScheduleMin: 120,
+} as const;
+
+/** KPI & simulasi (§9, §13.4). */
+export const SIM = {
+  /** Panjang shift; KPI paparan per shift di-reset setiap N menit simulasi. */
+  shiftMin: 480,
+  /** Zona dianggap berdebu bila skor PM ≥ N (§9). */
+  exposurePm: 5,
+  /** Sampel history maksimum per node. */
+  historyMax: 180,
+  /** Event log maksimum. */
+  eventsMax: 40,
+} as const;
