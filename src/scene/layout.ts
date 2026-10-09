@@ -1,7 +1,7 @@
 /** Konstanta tata letak scene yang dipakai beberapa komponen (dipisah agar fast refresh tetap jalan). */
 import { NODE_MARKER, NODE_SEEDS, ROUTE_GRAPH } from '../config/plant';
 import type { Vec3 } from '../sim/types';
-import type { CameraPreset } from '../store/useView';
+import type { ButtonPreset } from '../store/useView';
 
 /** Lantai ±42 × ±30 (§6). */
 export const FLOOR_SIZE: [number, number] = [84, 60];
@@ -29,13 +29,22 @@ export interface CameraPose {
   zoom: number;
 }
 
-export const CAMERA_PRESETS_POSE: Record<CameraPreset, CameraPose> = {
+export const CAMERA_PRESETS_POSE: Record<ButtonPreset, CameraPose> = {
   // Kalibrasi dari docs/reference.png: pusat layar ≈ titik dunia (−7, 0, −5).
   overview: { target: [-7, 0, -5], polar: ISO_POLAR, azimuth: ISO_AZIMUTH, zoom: 1 },
   nodeA: { target: [nodeA[0], 3, nodeA[2]], polar: ISO_POLAR, azimuth: ISO_AZIMUTH, zoom: 2.4 },
   // Lebih tegak agar rute Node A → Reprocessing & zona pekerja terbaca seperti peta.
   route: { target: [-17, 0, 15], polar: 0.6, azimuth: ISO_AZIMUTH, zoom: 1.9 },
 };
+
+/**
+ * Pose fokus ke sebuah node (klik node): isometrik, diperbesar. Titik orbit digeser ke kanan layar
+ * dari node sehingga node tampil di kiri-tengah dan kartu detail (di kanan beacon) muat utuh.
+ */
+export function focusPose(nodeId: string): CameraPose {
+  const p = NODE_SEEDS.find((n) => n.id === nodeId)?.position ?? [0, 0, 0];
+  return { target: offsetOnScreen([p[0], 3, p[2]], 7, 0), polar: ISO_POLAR, azimuth: ISO_AZIMUTH, zoom: 2.2 };
+}
 
 /**
  * Zoom dasar (px per unit dunia) agar seluruh lantai muat seperti di referensi
