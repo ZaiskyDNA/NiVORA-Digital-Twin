@@ -65,8 +65,8 @@ export const FACILITY_CAPTION: Record<string, string> = {
 };
 
 export const ZONE_LABEL = {
-  high: 'Zona aktivitas pekerja tinggi',
-  workersDetected: (n: number) => `${n} pekerja terdeteksi (berbasis zona)`,
+  high: 'Zona pekerja',
+  workersDetected: (n: number) => `${n} pekerja · berbasis zona`,
 } as const;
 
 export const ROUTE_LABEL = {
@@ -91,7 +91,7 @@ export const UI = {
   pillars: ['Predict', 'Protect', 'Circulate'] as const,
   live: { running: 'LIVE SIM', paused: 'JEDA', play: 'Jalankan simulasi', pause: 'Jeda simulasi', speed: 'Kecepatan simulasi' },
   mweri: {
-    title: 'Prioritas penanganan · MWERI',
+    title: 'Prioritas MWERI',
     chartTitle: (id: string) => `Prediksi Digital Twin · Node ${id}`,
     threshold: 'ambang kritis 8.0',
     chartNote: 'Garis putus = proyeksi · nilai ilustratif',
@@ -188,6 +188,46 @@ export const UI = {
     vs: 'vs',
   },
   pathway: { title: 'Circular material decision pathway', reason: 'Alasan', notFeasible: 'tidak layak' },
+  rec: {
+    title: 'Rekomendasi',
+    titleReactive: 'Tindakan reaktif',
+    now: 'Sekarang',
+    soon: (min: number) => `±${min} menit`,
+    monitor: 'Pantau',
+    handle: (id: string) => `Tangani Node ${id}`,
+    watch: (id: string) => `Pantau Node ${id}`,
+    priority: (rank: number) => `prioritas #${rank}`,
+    where: 'Ke mana',
+    via: 'Lewat',
+    route: (id: string | null, cost: string | null) => `${id ? `Rute ${id}` : 'Rute teraman'}${cost ? ` · C=${cost}` : ''}`,
+    avoids: 'menghindari zona pekerja',
+    crosses: 'melewati zona pekerja',
+    shortestReactive: 'rute terpendek (kebijakan reaktif)',
+    stepOf: (i: number, n: number) => `tahap ${i} dari ${n}`,
+    details: 'Lihat detail routing',
+    hideDetails: 'Sembunyikan detail routing',
+  },
+  top: {
+    scenario: 'Skenario',
+    scenarioShort: { normal: 'Normal', surge: 'Surge', disruption: 'Disruption' },
+    compare: 'Bandingkan reaktif',
+    camera: 'Kamera',
+    focus: 'Fokus',
+    focusHint: 'Tekan H untuk keluar dari mode fokus',
+    present: 'Presentasi',
+    exitPresent: 'Keluar presentasi',
+    weights: 'Atur bobot',
+  },
+  kpi: {
+    title: 'NiVORA vs reaktif (sesi ini)',
+    scene: 'Scene',
+    people: 'Paparan pekerja',
+    planet: 'Recovery rate',
+    productivity: 'Trip tak perlu',
+    unitExposure: 'pekerja-menit',
+  },
+  legendLine: { safe: 'Safe route (keputusan NiVORA)', shortest: 'Rute terpendek (dihindari)' },
+  insightToggle: 'Kenapa Node dengan residu tertinggi bukan prioritas?',
   scenario: { title: 'Skenario' },
   legend: { title: 'Legenda', worker: 'Pekerja', camera: 'Kamera' },
   panel: { collapse: 'Lipat panel', expand: 'Buka panel' },
