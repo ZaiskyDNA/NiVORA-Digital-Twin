@@ -13,9 +13,11 @@ interface Props {
   className?: string;
   /** Panel bawah yang lebar tidak perlu dilipat. */
   collapsible?: boolean;
+  /** Kontrol tambahan di baris judul (mis. tombol info). */
+  headerExtra?: ReactNode;
 }
 
-export function Panel({ title, subtitle, children, className = '', collapsible = true }: Props) {
+export function Panel({ title, subtitle, children, className = '', collapsible = true, headerExtra }: Props) {
   const id = useId();
   const narrow = useMediaQuery(NARROW_QUERY);
   const [override, setOverride] = useState<boolean | null>(null);
@@ -30,6 +32,7 @@ export function Panel({ title, subtitle, children, className = '', collapsible =
         <h2 id={`${id}-title`} className="min-w-0 pt-0.5 text-title uppercase text-accent">
           {title}
         </h2>
+        {headerExtra && <div className="ml-auto flex items-center">{headerExtra}</div>}
         {collapsible && (
           <button
             type="button"
