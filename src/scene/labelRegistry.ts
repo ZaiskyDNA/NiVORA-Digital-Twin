@@ -4,7 +4,15 @@
  * diproyeksikan oleh LabelProjector di dalam Canvas.
  */
 import { Vector3, type Camera } from 'three';
-import type { SceneLabel } from './sceneLabels';
+import type { LabelAlign, SceneLabel } from './sceneLabels';
+
+/** Geser elemen agar sisi yang sesuai menempel ke titik proyeksi. */
+const ALIGN: Record<LabelAlign, string> = {
+  above: 'translate(-50%, -100%)',
+  below: 'translate(-50%, 0)',
+  right: 'translate(0, -50%)',
+  left: 'translate(-100%, -50%)',
+};
 
 const elements = new Map<string, HTMLElement>();
 const binders = new Map<string, (el: HTMLElement | null) => void>();
@@ -34,6 +42,6 @@ export function projectLabels(labels: readonly SceneLabel[], camera: Camera, wid
     if (!visible) continue;
     const x = ((v.x + 1) / 2) * width;
     const y = ((1 - v.y) / 2) * height;
-    el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -100%)`;
+    el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) ${ALIGN[l.align ?? 'above']}`;
   }
 }
