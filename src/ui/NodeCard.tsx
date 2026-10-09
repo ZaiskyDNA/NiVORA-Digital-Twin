@@ -1,19 +1,32 @@
 /**
  * Kartu node (design-system §4.3): status sensor (Edge-AI) dan prioritas MWERI ditampilkan
- * TERPISAH (§13.2) — Node C bisa WARNING (volume) tetapi prioritas RENDAH. Isi di-update live,
- * re-render hanya saat nilai tampilan (dibulatkan) berubah.
+ * TERPISAH (§13.2) — Node C bisa WARNING (volume) tetapi prioritas rendah.
+ * Mode: ringkas (layar sempit / node lain dipilih), penuh, detail (node terpilih, Fase 6).
+ * Judul kartu adalah tombol: klik → kamera fokus + detail.
  */
+import { useCallback } from 'react';
 import { EDGE_AI_REASON_LABEL, PM_LEVEL_LABEL, UI } from '../config/i18n';
 import type { EdgeAIReason } from '../sim/types';
-import { useCallback } from 'react';
 import { selectViewed, type SimStore } from '../store/useSim';
+import { useView } from '../store/useView';
 import { NARROW_QUERY, UI_TEXT_MS, useMediaQuery, useThrottledSim } from './hooks';
+import { NodeDetail } from './NodeDetail';
 import { MweriBadge, StatusBadge, StatusShape } from './StatusBadge';
 import { MWERI_TONE, STATUS_TONE } from './tone';
 import { nodeCardView, type NodeCardView } from './viewModels';
 
 /** Angka → mono `text-metric`; kata (level PM) → sans agar muat di kolom (design-system §1.4). */
-function Metric({ label, value, word = false, className = 'text-fg' }: { label: string; value: string; word?: boolean; className?: string }) {
+function Metric({
+  label,
+  value,
+  word = false,
+  className = 'text-fg',
+}: {
+  label: string;
+  value: string;
+  word?: boolean;
+  className?: string;
+}) {
   return (
     <div className="min-w-0">
       <dt className="text-label uppercase text-fg-3">{label}</dt>
@@ -30,9 +43,13 @@ export function NodeCard({ nodeId }: { nodeId: string }) {
   const select = useCallback((s: SimStore) => JSON.stringify(nodeCardView(selectViewed(s), nodeId)), [nodeId]);
   const v = JSON.parse(useThrottledSim(select, UI_TEXT_MS)) as NodeCardView | null;
   const narrow = useMediaQuery(NARROW_QUERY);
+  const selected = useView((s) => s.selected);
+  const selectNode = useView((s) => s.selectNode);
   if (!v) return null;
-  // Mode ringkas (design-system §4.3): di layar sempit hanya node critical yang tampil penuh.
-  const compact = narrow && v.status !== 'critical';
+
+  const isSelected = selected === v.id;
+  // Ringkas: layar sempit atau ada node lain yang sedang dibuka — kecuali node critical.
+  const compact = !isSelected && v.status !== 'critical' && (narrow || selected !== null);
   const status = STATUS_TONE[v.status];
   const reasons = v.reasons
     .split(',')
@@ -41,20 +58,43 @@ export function NodeCard({ nodeId }: { nodeId: string }) {
     .join(' + ');
   const prediction =
     v.ttc === null ? UI.card.stable : v.ttc === 0 ? UI.card.criticalNow : UI.card.criticalIn(v.ttc);
+  const width = isSelected ? 'w-[22rem]' : compact ? 'w-60' : 'w-card-w';
 
   return (
     <article
       aria-label={`Node ${v.id} · ${v.name}`}
-      className={`${compact ? 'w-60' : 'w-card-w'} rounded-card bg-surface-0/95 p-tile ${status.glow}`}
+      className={`pointer-events-auto ${width} rounded-card bg-surface-0/95 p-tile ${status.glow} ${
+        isSelected ? 'ring-2 ring-accent/70' : ''
+      }`}
     >
       <header className="flex items-center justify-between gap-2">
-        <h3 className="flex min-w-0 items-center gap-2 text-caption font-semibold text-fg">
+        <button
+          type="button"
+          onClick={() => selectNode(isSelected ? null : v.id)}
+          aria-pressed={isSelected}
+          aria-label={isSelected ? UI.card.close : UI.card.open(v.id)}
+          className="-m-1 flex min-w-0 items-center gap-2 rounded-control p-1 text-left text-caption font-semibold text-fg hover:bg-surface-2"
+        >
           <StatusShape status={v.status} className={status.text} />
           <span className="truncate">
             Node {v.id} · {v.name}
           </span>
-        </h3>
-        <StatusBadge status={v.status} variant={v.status === 'critical' ? 'solid' : 'soft'} />
+        </button>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <StatusBadge status={v.status} variant={v.status === 'critical' ? 'solid' : 'soft'} />
+          {isSelected && (
+            <button
+              type="button"
+              onClick={() => selectNode(null)}
+              aria-label={UI.card.close}
+              className="grid size-6 place-items-center rounded-control text-fg-2 hover:bg-surface-2 hover:text-fg"
+            >
+              <svg viewBox="0 0 12 12" className="size-3" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="m3 3 6 6M9 3 3 9" />
+              </svg>
+            </button>
+          )}
+        </div>
       </header>
 
       {compact ? (
@@ -67,7 +107,11 @@ export function NodeCard({ nodeId }: { nodeId: string }) {
         <>
           <dl className="mt-2 grid grid-cols-[auto_auto_1fr_auto] gap-x-3">
             <Metric label={UI.card.mweri} value={v.mweri} className={MWERI_TONE[v.cls].text} />
-            <Metric label={UI.card.residue} value={v.residue} />
+            <Metric
+              label={UI.card.residue}
+              value={v.residue}
+              className={v.noWorkersHighResidue ? 'text-warning' : 'text-fg'}
+            />
             <Metric label={UI.card.pm} value={PM_LEVEL_LABEL[v.pm]} word />
             <Metric label={UI.card.workers} value={v.workers} />
           </dl>
@@ -89,9 +133,16 @@ export function NodeCard({ nodeId }: { nodeId: string }) {
             </div>
           </dl>
 
-          <p className="mt-2 text-caption text-fg-2">
-            {v.noWorkersHighResidue ? UI.card.noWorkers : prediction}
-          </p>
+          {v.noWorkersHighResidue ? (
+            <p className="mt-2 flex items-start gap-1.5 text-caption font-medium text-fg">
+              <span aria-hidden className="mt-1 size-1.5 shrink-0 rounded-full bg-warning" />
+              {UI.card.noWorkers}
+            </p>
+          ) : (
+            <p className="mt-2 text-caption text-fg-2">{prediction}</p>
+          )}
+
+          {isSelected && <NodeDetail nodeId={v.id} />}
         </>
       )}
     </article>
