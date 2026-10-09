@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useSyncExternalStore } from 'react';
 import { DISCLAIMER } from './config/i18n';
+import { stopTour } from './demo/tour';
 import { startSimClock } from './store/clock';
+import { useTour } from './store/useTour';
 import { useView } from './store/useView';
 import { KpiStrip } from './ui/KpiStrip';
 import { LegendLine } from './ui/LegendLine';
@@ -9,6 +11,7 @@ import { MweriPanel } from './ui/MweriPanel';
 import { ReactiveBanner } from './ui/ReactiveBanner';
 import { RecommendationCard } from './ui/RecommendationCard';
 import { TopBar } from './ui/TopBar';
+import { TourOverlay } from './ui/TourOverlay';
 import { WeightsDrawer } from './ui/WeightsDrawer';
 
 const DebugPage = lazy(() => import('./debug/DebugPage'));
@@ -36,6 +39,10 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const v = useView.getState();
+      if (e.key === 'Escape' && useTour.getState().active) {
+        stopTour();
+        return;
+      }
       if (e.key === 'Escape' && !v.weightsOpen) v.selectNode(null);
       if ((e.key === 'h' || e.key === 'H') && !e.ctrlKey && !e.metaKey && !e.altKey && !isTyping(e.target)) {
         v.setFocusMode(!v.focusMode);
@@ -77,6 +84,7 @@ export default function App() {
         </div>
 
         <footer className="flex flex-col gap-3 px-gutter pb-4">
+          <TourOverlay />
           {compare && !focus && (
             <div className="flex justify-center">
               <KpiStrip />
