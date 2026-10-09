@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { ESSAY_SNAPSHOT, NODE_SEEDS } from '../../config/plant';
 import { DEFAULT_MWERI_WEIGHTS, NORMALIZATION } from '../../config/weights';
-import { classifyMweri, computeMweri, mweriParamsOf, normalizeWeights, rankByMweri, toScore } from '../mweri';
+import {
+  classifyMweri,
+  computeMweri,
+  mweriParamsOf,
+  normalizeWeights,
+  rankByMweri,
+  rebalanceWeights,
+  toScore,
+} from '../mweri';
 import type { MweriParams, NodeState } from '../types';
 import { expectNear, TOL } from './helpers';
 
@@ -81,5 +89,36 @@ describe('MWERI (§5.1)', () => {
   it('ranking: A > B > C — Node C residu tinggi tetapi prioritas terendah', () => {
     const nodes = Object.entries(APPENDIX_4).map(([id, v]) => ({ id, mweri: v.mweri }));
     expect(rankByMweri(nodes)).toEqual(['A', 'B', 'C']);
+  });
+});
+
+describe('rebalanceWeights (slider Σ = 1)', () => {
+  const base = { wH: 0.2, wP: 0.4, wW: 0.3, wT: 0.1 };
+  const sum = (w: Record<string, number>) => Object.values(w).reduce((a, b) => a + b, 0);
+
+  it('Σ tetap 1 dan bobot yang digeser bernilai persis', () => {
+    const w = rebalanceWeights(base, 'wW', 0.6);
+    expectNear(sum(w), 1);
+    expectNear(w.wW, 0.6);
+  });
+
+  it('bobot lain mempertahankan proporsi relatifnya', () => {
+    const w = rebalanceWeights(base, 'wW', 0.6);
+    // H : P : T = 2 : 4 : 1 berbagi sisa 0.4
+    expectNear(w.wH, (0.2 / 0.7) * 0.4);
+    expectNear(w.wP / w.wH, 2);
+    expectNear(w.wT / w.wH, 0.5);
+  });
+
+  it('nilai 1 → bobot lain 0; nilai di luar 0–1 dijepit', () => {
+    expect(rebalanceWeights(base, 'wP', 1)).toEqual({ wH: 0, wP: 1, wW: 0, wT: 0 });
+    expectNear(rebalanceWeights(base, 'wP', 7).wP, 1);
+    expectNear(rebalanceWeights(base, 'wP', -1).wP, 0);
+  });
+
+  it('dari kondisi bobot lain semuanya 0 → sisa dibagi rata', () => {
+    const w = rebalanceWeights({ a: 1, b: 0, c: 0 }, 'a', 0.4);
+    expectNear(w.b, 0.3);
+    expectNear(w.c, 0.3);
   });
 });
