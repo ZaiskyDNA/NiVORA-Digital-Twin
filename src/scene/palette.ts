@@ -3,6 +3,7 @@
  * khusus scene, diambil dari docs/reference.png (low-poly digital twin, bukan fotorealistis).
  */
 import type { FacilityKind } from '../config/plant';
+import { Color } from 'three';
 import type { Status } from '../sim/types';
 import { COLOR } from '../styles/tokens';
 
@@ -39,3 +40,22 @@ export const SCENE = {
   conveyorFrame: '#5c7396',
   zoneFill: COLOR.critical,
 } as const;
+
+/** Pulsa ring node per status (Hz) — makin kritis makin cepat (§7). */
+export const PULSE_HZ: Record<Status, number> = { normal: 0.3, warning: 0.65, critical: 1.4 };
+
+/**
+ * Warna HDR (> 1) untuk objek yang boleh tertangkap Bloom (luminanceThreshold = 1).
+ * Dibuat sekali di modul — jangan buat Color di dalam useFrame.
+ */
+export const hdr = (hex: string, k: number): Color => new Color(hex).multiplyScalar(k);
+
+export const BLOOM = {
+  beacon: 2.4,
+  safeRoute: 2.2,
+  truckLight: 3,
+} as const;
+
+export const DUST_COLOR = '#e6c9a8';
+export const ORE_COLOR = '#8a7560';
+export const TRUCK = { body: '#c9d6e8', cab: '#6fb6ff', load: '#7a5a3f' } as const;
