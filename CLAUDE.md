@@ -385,3 +385,8 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 - What-if: `whatIf()` = fork `step()` 30 tick; state utama tidak berubah (diuji). Lintasan tampil sebagai garis titik-titik di grafik.
 - Toggle NiVORA/Reaktif mengganti `view`; banner merah + kotak tindakan bernada merah di mode reaktif (cyan tetap khusus keputusan NiVORA). KPI selalu menampilkan nilai kedua mode; tren dinilai relatif terhadap baseline reaktif (Planet pun).
 - Performa terukur (semua panel, Surge): 56 fps @1×, 54 @5×, 52 @20×; semua fitur Fase 6 terbuka bersamaan: 51 @20×.
+
+### 13.15 Declutter & presentasi (Fase 7)
+- Declutter (progressive disclosure): maksimal tiga blok selalu terlihat — TopBar satu baris, panel MWERI (ranking + grafik; insight di balik ikon (i)), kartu Rekomendasi (kapan · prioritas · ke mana + tahap pathway · rute; tabel D/R/O di balik "Lihat detail routing"). KPI hanya saat "Bandingkan reaktif"; tombol `H` = mode fokus. Label fasilitas hanya untuk tujuan rute aktif & hover; node berupa pill kecuali dipilih atau prioritas #1 yang critical; hanya safe route yang berlabel.
+- Presentasi = `src/demo/tour.ts` (naskah 60 detik, 7 langkah, aksi store saja) + `ui/TourOverlay.tsx`. Langkah Overview mengembalikan skenario & bobot esai sebelum `reset(DEFAULT_SEED)` agar demo identik dari kondisi apa pun (diuji). Langkah Node A menunggu A critical **dan** rekomendasi "now" agar narasi, kartu, dan scene selaras. Esc / keluar layar penuh menghentikan tur.
+- Build: vendor dipisah lewat `build.rolldownOptions.output.codeSplitting` (three, r3f, charts, react); `chunkSizeWarningLimit` 800 kB karena inti three.js ±740 kB. `vercel.json`: `npm ci`, cache permanen `/assets/*`. `engines.node >= 20.19`.
