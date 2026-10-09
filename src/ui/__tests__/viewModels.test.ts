@@ -13,6 +13,7 @@ import {
   pmLevel,
   rankingRows,
   recommendationParts,
+  recommendationView,
   routeFormula,
   routingRows,
 } from '../viewModels';
@@ -253,5 +254,32 @@ describe('kpiTiles — tren Planet relatif terhadap reaktif', () => {
     r.metrics.handled = 100;
     r.metrics.recovered = 100;
     expect(kpiTiles(n, r)[1]).toMatchObject({ value: '78%', trend: 'worse', reactive: '100%' });
+  });
+});
+
+describe('recommendationView — kartu Rekomendasi', () => {
+  it('menjawab kapan · prioritas · ke mana · lewat mana untuk Node A', () => {
+    const v = recommendationView(createInitialState())!;
+    expect(v).toMatchObject({
+      nodeId: 'A',
+      rank: 1,
+      destination: 'Unit Reprocessing',
+      stage: 'reuse',
+      stageIndex: 0,
+      routeId: 'B',
+      routeCost: '2.8',
+      throughZone: false,
+      reactive: false,
+    });
+  });
+
+  it('Surge: urgensi "now"; Disruption: rute C', () => {
+    expect(recommendationView(runTicks(createInitialState({ scenarioId: 'surge' }), 10))?.urgency).toBe('now');
+    expect(recommendationView(setScenario(createInitialState(), 'disruption'))?.routeId).toBe('C');
+  });
+
+  it('mode reaktif ditandai & rute terpendek A melewati zona', () => {
+    const v = recommendationView(createInitialState({ policy: 'reactive' }))!;
+    expect(v).toMatchObject({ reactive: true, routeId: 'A', throughZone: true });
   });
 });
