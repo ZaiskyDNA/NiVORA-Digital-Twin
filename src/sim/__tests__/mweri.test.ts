@@ -1,0 +1,76 @@
+import { describe, expect, it } from 'vitest';
+import { NODE_SEEDS } from '../../config/plant';
+import { DEFAULT_MWERI_WEIGHTS, NORMALIZATION } from '../../config/weights';
+import { classifyMweri, computeMweri, mweriParamsOf, normalizeWeights, rankByMweri, toScore } from '../mweri';
+import type { MweriParams, NodeState } from '../types';
+import { expectNear, TOL } from './helpers';
+
+// Lampiran 4 esai.
+const APPENDIX_4: Record<string, { params: MweriParams; mweri: number }> = {
+  A: { params: { H: 8, P: 9, W: 9, T: 5 }, mweri: 8.4 },
+  B: { params: { H: 7, P: 6, W: 3, T: 4 }, mweri: 5.1 },
+  C: { params: { H: 6, P: 3, W: 0, T: 2 }, mweri: 2.6 },
+};
+
+const asNode = (seed: (typeof NODE_SEEDS)[number]): NodeState => ({
+  ...seed,
+  status: 'normal',
+  mweri: 0,
+  ttc: null,
+  history: [],
+});
+
+describe('MWERI (§5.1)', () => {
+  it('bobot default berjumlah 1', () => {
+    const { wH, wP, wW, wT } = DEFAULT_MWERI_WEIGHTS;
+    expectNear(wH + wP + wW + wT, 1);
+  });
+
+  it.each(Object.entries(APPENDIX_4))('node %s cocok dengan Lampiran 4', (_id, { params, mweri }) => {
+    expectNear(computeMweri(params, DEFAULT_MWERI_WEIGHTS), mweri);
+  });
+
+  it('data awal plant.ts menghasilkan parameter & MWERI Lampiran 4 lewat normalisasi sensor', () => {
+    for (const seed of NODE_SEEDS) {
+      const expected = APPENDIX_4[seed.id];
+      if (!expected) throw new Error(`Node ${seed.id} tidak ada di Lampiran 4`);
+      const params = mweriParamsOf(asNode(seed), NORMALIZATION.exposureLimitMin);
+      expectNear(params.H, expected.params.H);
+      expectNear(params.P, expected.params.P);
+      expectNear(params.W, expected.params.W);
+      expectNear(params.T, expected.params.T);
+      expectNear(computeMweri(params, DEFAULT_MWERI_WEIGHTS), expected.mweri);
+    }
+  });
+
+  it('klasifikasi kelas di batas 3 / 6 / 8', () => {
+    expect(classifyMweri(2.6)).toBe('rendah');
+    expect(classifyMweri(2.999)).toBe('rendah');
+    expect(classifyMweri(3)).toBe('sedang');
+    expect(classifyMweri(5.1)).toBe('sedang');
+    expect(classifyMweri(6)).toBe('tinggi');
+    expect(classifyMweri(8)).toBe('kritis');
+    expect(classifyMweri(8.4)).toBe('kritis');
+  });
+
+  it('normalisasi skor sensor di-clamp ke 0–10', () => {
+    expect(toScore(75, 150)).toBe(5);
+    expect(toScore(300, 150)).toBe(10);
+    expect(toScore(-5, 150)).toBe(0);
+    expect(toScore(5, 0)).toBe(0);
+  });
+
+  it('normalizeWeights menghasilkan Σ = 1 dan mempertahankan proporsi', () => {
+    const w = normalizeWeights({ wH: 1, wP: 2, wW: 1, wT: 0 });
+    expectNear(w.wH + w.wP + w.wW + w.wT, 1);
+    expectNear(w.wP, 0.5);
+    const zero = normalizeWeights({ a: 0, b: 0 });
+    expect(zero).toEqual({ a: 0.5, b: 0.5 });
+    expect(Math.abs(normalizeWeights({ a: -1, b: 3 }).b - 1)).toBeLessThanOrEqual(TOL);
+  });
+
+  it('ranking: A > B > C — Node C residu tinggi tetapi prioritas terendah', () => {
+    const nodes = Object.entries(APPENDIX_4).map(([id, v]) => ({ id, mweri: v.mweri }));
+    expect(rankByMweri(nodes)).toEqual(['A', 'B', 'C']);
+  });
+});
