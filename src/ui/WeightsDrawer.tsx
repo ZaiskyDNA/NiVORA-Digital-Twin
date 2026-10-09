@@ -10,7 +10,7 @@ import { rebalanceWeights } from '../sim/mweri';
 import type { MweriWeights, RouteWeights } from '../sim/types';
 import { selectViewed, useSim, type SimStore } from '../store/useSim';
 import { useView } from '../store/useView';
-import { UI_TEXT_MS, useThrottledSim } from './hooks';
+import { UI_TEXT_MS, useIsMobile, useThrottledSim } from './hooks';
 import { mweriFormula, rankingRows, routeFormula } from './viewModels';
 
 type Key<T> = Extract<keyof T, string>;
@@ -72,6 +72,7 @@ export function WeightsDrawer() {
   const [ranking, route, mf, rf] = useThrottledSim(selectPreview, UI_TEXT_MS).split('|');
   const setWeights = useSim((s) => s.setWeights);
   const first = useRef<HTMLDivElement>(null);
+  const mobile = useIsMobile();
 
   useEffect(() => {
     if (!open) return;
@@ -91,7 +92,10 @@ export function WeightsDrawer() {
       role="dialog"
       aria-modal="false"
       aria-labelledby="weights-title"
-      className="pointer-events-auto absolute top-32 right-gutter bottom-24 z-[var(--z-drawer)] flex w-[23rem] flex-col overflow-y-auto rounded-panel border border-line-strong bg-surface-0 p-panel shadow-panel"
+      className={`pointer-events-auto absolute z-[var(--z-drawer)] flex flex-col overflow-y-auto overscroll-contain rounded-panel border border-line-strong bg-surface-0 p-panel shadow-panel ${
+        // Ponsel: lembar bawah selebar layar.
+        mobile ? 'inset-x-2 top-24 bottom-2' : 'top-32 right-gutter bottom-24 w-[23rem]'
+      }`}
     >
       <header className="flex items-start justify-between gap-3">
         <h2 id="weights-title" className="text-title uppercase text-accent">
