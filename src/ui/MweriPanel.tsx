@@ -2,7 +2,7 @@
  * Panel kiri: ranking prioritas MWERI (live) + grafik prediksi Digital Twin node #1 (±2 Hz)
  * + disclaimer MWERI (wajib, §5.1).
  */
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { DISCLAIMER, UI } from '../config/i18n';
 import { selectViewed, useSim, type SimStore } from '../store/useSim';
 import { UI_CHART_MS, UI_TEXT_MS, useThrottledSim } from './hooks';
@@ -79,6 +79,7 @@ export function MweriPanel() {
   const chart = useThrottledSim(selectChart, UI_CHART_MS);
   const insight = JSON.parse(useThrottledSim(selectInsight, UI_TEXT_MS)) as VolumeRiskInsight | null;
   const selected = useView((s) => s.selected);
+  const [infoOpen, setInfoOpen] = useState(false);
   const selectNode = useView((s) => s.selectNode);
   const result = useView((s) => s.whatIf);
   const setWhatIf = useView((s) => s.setWhatIf);
@@ -90,7 +91,31 @@ export function MweriPanel() {
   );
 
   return (
-    <Panel title={UI.mweri.title} subtitle={formula} className="w-panel-w">
+    <Panel
+      title={UI.mweri.title}
+      subtitle={formula}
+      className="w-panel-w"
+      headerExtra={
+        insight && (
+          // Progressive disclosure: insight "Volume ≠ risiko" dibuka lewat ikon (i); titik = ada insight.
+          <button
+            type="button"
+            aria-expanded={infoOpen}
+            aria-controls="insight-body"
+            aria-label={UI.insightToggle}
+            title={UI.insightToggle}
+            onClick={() => setInfoOpen(!infoOpen)}
+            className="relative grid size-8 place-items-center rounded-control text-fg-2 hover:bg-surface-2 hover:text-fg"
+          >
+            <svg viewBox="0 0 16 16" className="size-4" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="8" cy="8" r="6.25" />
+              <path d="M8 7.2v4M8 4.9v.1" strokeLinecap="round" />
+            </svg>
+            {!infoOpen && <span aria-hidden className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-warning" />}
+          </button>
+        )
+      }
+    >
       <ol className="space-y-4" aria-label="Ranking prioritas node">
         {rows.map((r) => (
           <RankItem
@@ -102,8 +127,8 @@ export function MweriPanel() {
         ))}
       </ol>
 
-      {insight && (
-        <aside className="mt-4 rounded-tile border-l-2 border-warning bg-warning/10 p-tile">
+      {insight && infoOpen && (
+        <aside id="insight-body" className="mt-4 rounded-tile bg-warning/10 p-tile">
           <h3 className="text-label uppercase text-warning">{UI.insight.title}</h3>
           <p className="mt-1 text-caption text-fg">
             {UI.insight.body(insight.nodeId, insight.residue, insight.mweri, insight.rank, insight.topNodeId)}
