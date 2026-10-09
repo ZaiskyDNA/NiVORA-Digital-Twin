@@ -5,9 +5,11 @@
 import { OrbitControls } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef, type ComponentRef } from 'react';
-import { MathUtils, Vector3 } from 'three';
+import { MathUtils, TOUCH, Vector3 } from 'three';
+import { useTour } from '../store/useTour';
+import { useIsMobile } from '../ui/hooks';
 import { useView } from '../store/useView';
-import { baseZoom, CAMERA_PRESETS_POSE, cameraPosition, FLOOR_SIZE, focusPose } from './layout';
+import { baseZoom, CAMERA_PRESETS_POSE, cameraPosition, FLOOR_SIZE, focusPose, mobileViewShift } from './layout';
 
 type OrbitControlsImpl = ComponentRef<typeof OrbitControls>;
 
@@ -18,6 +20,9 @@ const LIMITS = {
   minZoom: 0.7,
   maxZoom: 5,
 };
+
+const MOBILE_TOUCHES = { ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_ROTATE };
+const DESKTOP_TOUCHES = { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN };
 
 /** Laju damping transisi preset (lebih besar = lebih cepat). */
 const LAMBDA = 3.2;
@@ -34,15 +39,22 @@ export function CameraRig() {
   const get = useThree((s) => s.get);
   const width = useThree((s) => s.size.width);
   const height = useThree((s) => s.size.height);
-  const base = baseZoom(width, height);
+  const mobile = useIsMobile();
+  const base = baseZoom(width, height, mobile);
   const goal = useRef<Goal | null>(null);
+  /** Geser proyeksi saat ini (px) — dianimasikan menuju target. */
+  const shift = useRef({ x: 0, y: 0 });
+  const touring = useTour((s) => s.active);
 
   const nonce = useView((s) => s.presetNonce);
   const preset = useView((s) => s.preset);
   const selected = useView((s) => s.selected);
 
   useEffect(() => {
-    const p = preset === 'focus' && selected ? focusPose(selected) : CAMERA_PRESETS_POSE[preset === 'focus' ? 'overview' : preset];
+    const p =
+      preset === 'focus' && selected
+        ? focusPose(selected, mobile)
+        : CAMERA_PRESETS_POSE[preset === 'focus' ? 'overview' : preset];
     const next: Goal = {
       position: new Vector3(...cameraPosition(p)),
       target: new Vector3(...p.target),
@@ -62,9 +74,28 @@ export function CameraRig() {
     } else {
       goal.current = next;
     }
-  }, [preset, selected, nonce, get, base]);
+  }, [preset, selected, nonce, get, base, mobile]);
 
   useFrame(({ camera }, dt) => {
+    // Ponsel: pusat scene di area yang terlihat (di luar TopBar & bottom sheet). Saat tur, sheet
+    // hanya ringkasan meski ada node terpilih.
+    const s = shift.current;
+    if (mobile) {
+      const f = mobileViewShift(width, height, selected !== null && !touring);
+      const k = Math.min(dt, 0.1);
+      const x = MathUtils.damp(s.x, f.x * width, LAMBDA, k);
+      const y = MathUtils.damp(s.y, f.y * height, LAMBDA, k);
+      const v = camera.view;
+      if (Math.abs(x - s.x) > 0.25 || Math.abs(y - s.y) > 0.25 || !v?.enabled || v.fullWidth !== width || v.fullHeight !== height) {
+        s.x = x;
+        s.y = y;
+        camera.setViewOffset(width, height, s.x, s.y, width, height);
+      }
+    } else if (camera.view?.enabled) {
+      s.x = 0;
+      s.y = 0;
+      camera.clearViewOffset();
+    }
     const c = controls.current;
     const g = goal.current;
     if (!c || !g) return;
@@ -101,6 +132,8 @@ export function CameraRig() {
       minZoom={base * LIMITS.minZoom}
       maxZoom={base * LIMITS.maxZoom}
       screenSpacePanning={false}
+      // Ponsel: satu jari menggeser peta (pola peta), dua jari cubit-zoom & putar.
+      touches={mobile ? MOBILE_TOUCHES : DESKTOP_TOUCHES}
       // Interaksi pengguna membatalkan transisi preset yang sedang berjalan.
       onStart={() => {
         goal.current = null;
