@@ -10,7 +10,7 @@ export function CameraPresetBar() {
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
     e.preventDefault();
-    const i = CAMERA_PRESETS.indexOf(preset);
+    const i = preset === 'focus' ? 0 : CAMERA_PRESETS.indexOf(preset);
     const next = CAMERA_PRESETS[(i + (e.key === 'ArrowRight' ? 1 : -1) + CAMERA_PRESETS.length) % CAMERA_PRESETS.length];
     if (next) setPreset(next);
   };
@@ -25,7 +25,7 @@ export function CameraPresetBar() {
             type="button"
             role="radio"
             aria-checked={checked}
-            tabIndex={checked ? 0 : -1}
+            tabIndex={checked || (preset === 'focus' && p === 'overview') ? 0 : -1}
             onClick={() => setPreset(p)}
             className={`h-control whitespace-nowrap rounded-control border px-3 text-body transition-colors duration-[var(--duration-fast)] ${
               checked
