@@ -3,7 +3,9 @@
  * Dijalankan SETELAH MWERI dihitung pada tick yang sama (§13.2).
  */
 import { EDGE_AI_THRESHOLDS } from '../config/thresholds';
-import type { Status } from './types';
+import type { EdgeAIReason, Status } from './types';
+
+export type { EdgeAIReason };
 
 export interface EdgeAIInput {
   residueLevel: number;
@@ -12,9 +14,6 @@ export interface EdgeAIInput {
   /** Kemiringan tren residueLevel (% per menit); null bila belum cukup data. */
   levelSlope: number | null;
 }
-
-/** Aturan yang terpicu — dipakai UI untuk alasan, mis. "WARNING (volume)". */
-export type EdgeAIReason = 'volume' | 'pm' | 'mweri' | 'trend';
 
 export interface EdgeAIResult {
   status: Status;
