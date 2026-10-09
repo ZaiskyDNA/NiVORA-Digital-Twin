@@ -335,7 +335,7 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 
 ### 13.7 Bahasa & layout
 - Bahasa campuran: label Indonesia, istilah teknis Inggris (MWERI, Digital Twin, Edge-AI, Safe Route, Reprocessing, dll.). Semua string UI lewat glosarium `src/config/i18n.ts`.
-- Di bawah 1280px: panel bisa dilipat. Tidak ada versi mobile.
+- Di bawah 1280px: panel bisa dilipat. Ponsel punya layout tersendiri (§13.16, menggantikan "tidak ada versi mobile").
 
 ### 13.8 Sinkronisasi store–scene (pedoman performa)
 - Objek 3D yang berubah tiap frame membaca store via `useSim.getState()` / `subscribe` di dalam `useFrame` dan menulis ke ref — **bukan** lewat selector React.
@@ -391,3 +391,10 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 - Presentasi = `src/demo/tour.ts` (naskah 60 detik, 7 langkah, aksi store saja) + `ui/TourOverlay.tsx`. Langkah Overview mengembalikan skenario & bobot esai sebelum `reset(DEFAULT_SEED)` agar demo identik dari kondisi apa pun (diuji). Langkah Node A menunggu A critical **dan** rekomendasi "now" agar narasi, kartu, dan scene selaras. Esc / keluar layar penuh menghentikan tur.
 - Build: vendor dipisah lewat `build.rolldownOptions.output.codeSplitting` (three, r3f, charts, react); `chunkSizeWarningLimit` 800 kB karena inti three.js ±740 kB. `vercel.json`: `npm ci`, cache permanen `/assets/*`. `engines.node >= 20.19`.
 - Fallback tanpa WebGL: Chrome ≥137 tidak lagi jatuh ke SwiftShader, jadi bila akselerasi GPU mati/diblokir (terjadi di Chrome Linux pengguna; Firefox tetap jalan) WebGL tidak ada sama sekali. `hasWebGL2()` dicek sebelum scene dimuat; `ErrorBoundary` membungkus scene dan seluruh app agar error tidak menyisakan layar kosong. `Fallback` menampilkan tangkapan diam `public/scene-fallback.jpg` + alamat pengaturan Chrome yang bisa disalin; panel tetap hidup.
+
+### 13.16 Tampilan ponsel
+- Juri kemungkinan besar membuka di ponsel → layout terpisah untuk `MOBILE_QUERY` = `(max-width: 767px), (max-height: 520px)` (`useIsMobile`). Desktop tidak berubah.
+- `MobileTopBar`: dua baris (identitas · Tur 60 dtk · menu ☰ / jalankan+jam · skenario selebar layar); lanskap satu baris. Kecepatan, preset kamera, dan bobot di menu. Gradasi latar agar pill tidak menembus teks.
+- Scene: hanya pill node (`buildSceneLabels({ mobile })`) — tanpa label fasilitas/zona/rute & tanpa kartu melayang. `baseZoom(..., mobile)` memenuhi lebar layar; `setViewOffset` (`mobileViewShift`) memusatkan scene di area yang tidak tertutup sheet (lebih ke atas saat detail node terbuka; lanskap ke kanan). Sentuhan: 1 jari geser, 2 jari cubit-zoom/putar.
+- `MobileSheet` (bottom sheet): tertutup = ringkasan kapan · prioritas · ke mana · rute + tab Rekomendasi/Prioritas/Bandingkan; isi memakai komponen desktop varian `embedded`. Node yang diketuk tampil sebagai `NodeCard embedded` di sheet. Saat tur: hanya ringkasan (langkah KPI menampilkan KPI), kartu tur di atasnya; tur di ponsel tanpa layar penuh.
+- `WeightsDrawer` di ponsel = lembar selebar layar. `#root` memakai `100dvh`; safe-area iOS via `viewport-fit=cover` + `env(safe-area-inset-*)`.
