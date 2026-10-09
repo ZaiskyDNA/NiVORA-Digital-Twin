@@ -3,6 +3,10 @@ import { createInitialState, runTicks, setScenario, setWeights } from '../../sim
 import {
   kpiTiles,
   mweriChart,
+  nodeDetailView,
+  volumeRiskInsight,
+  whatIf,
+  withSimulated,
   mweriFormula,
   nodeCardView,
   pathwayView,
@@ -157,5 +161,97 @@ describe('konsistensi angka & kelas MWERI', () => {
     expect(card.mweri).toBe('3.0');
     expect(card.cls).toBe('sedang');
     expect(rankingRows(s).find((r) => r.id === 'C')?.cls).toBe('sedang');
+  });
+});
+
+describe('nodeDetailView — komposisi MWERI', () => {
+  it('Σ kontribusi = MWERI; Node C: kontribusi W = 0 (tidak ada pekerja)', () => {
+    const s = createInitialState();
+    for (const id of ['A', 'B', 'C']) {
+      const d = nodeDetailView(s, id)!;
+      const total = d.terms.reduce((a, t) => a + t.score * t.weight, 0);
+      expect(total).toBeCloseTo(s.nodes.find((n) => n.id === id)!.mweri, 1);
+    }
+    const c = nodeDetailView(s, 'C')!;
+    expect(c.terms.find((t) => t.key === 'W')).toMatchObject({ score: 0, contribution: 0 });
+    expect(c.destination).toBe('Treatment');
+  });
+});
+
+describe('volumeRiskInsight — pesan kunci Node C', () => {
+  it('residu tertinggi tanpa pekerja & bukan prioritas #1 → insight Node C', () => {
+    const i = volumeRiskInsight(createInitialState());
+    expect(i).toMatchObject({ nodeId: 'C', rank: 3, topNodeId: 'A' });
+    expect(i!.residue).toBeGreaterThanOrEqual(58);
+  });
+
+  it('tidak muncul bila node residu tertinggi adalah prioritas #1', () => {
+    const s = createInitialState();
+    s.nodes.find((n) => n.id === 'A')!.residueLevel = 95;
+    expect(volumeRiskInsight(s)).toBeNull();
+  });
+});
+
+describe('whatIf — fork 30 menit', () => {
+  it('tidak mengubah state asli & menghasilkan lintasan 31 titik per node', () => {
+    const s = createInitialState({ scenarioId: 'surge' });
+    const snapshot = structuredClone(s);
+    const r = whatIf(s, 30);
+    expect(s).toEqual(snapshot);
+    expect(r.fromT).toBe(0);
+    expect(r.trajectories.A).toHaveLength(31);
+    expect(r.trajectories.A?.at(-1)?.t).toBe(30);
+  });
+
+  it('Surge: Node A diprediksi critical dan truk dikirim dalam 30 menit', () => {
+    const r = whatIf(createInitialState({ scenarioId: 'surge' }), 30);
+    expect(r.nodes.find((n) => n.id === 'A')?.becameCritical).toBe(true);
+    expect(r.dispatches).toBeGreaterThan(0);
+  });
+
+  it('hasil sama dengan runTicks pada state yang sama (deterministik)', () => {
+    const s = createInitialState({ seed: 3 });
+    const end = runTicks(s, 30);
+    const r = whatIf(s, 30);
+    expect(r.nodes.find((n) => n.id === 'B')?.mweriAfter).toBe(
+      (Math.round(end.nodes.find((n) => n.id === 'B')!.mweri * 10) / 10).toFixed(1),
+    );
+  });
+
+  it('withSimulated menggabungkan lintasan ke titik grafik', () => {
+    const merged = withSimulated([{ t: 0, mweri: 5 }], [{ t: 0, mweri: 5 }, { t: 1, mweri: 6 }]);
+    expect(merged).toEqual([{ t: 0, mweri: 5, sim: 5 }, { t: 1, sim: 6 }]);
+  });
+});
+
+describe('kpiTiles — nilai berdampingan', () => {
+  it('setiap tile membawa nilai NiVORA & reaktif', () => {
+    const n = runTicks(createInitialState({ policy: 'nivora' }), 240);
+    const r = runTicks(createInitialState({ policy: 'reactive' }), 240);
+    const [people, planet, productivity] = kpiTiles(n, r);
+    expect(Number(people!.nivora)).toBeLessThan(Number(people!.reactive));
+    expect(planet!.nivora).toMatch(/%$/);
+    expect(productivity!.reactive).toMatch(/^\d+$/);
+  });
+});
+
+describe('routingRows — rute terpilih yang melewati zona pekerja', () => {
+  it('β = 0 → A terpilih dan ditandai throughZone (tidak disebut "safe" begitu saja)', () => {
+    const s = setWeights(createInitialState(), { route: { alpha: 1, beta: 0, gamma: 0 } });
+    const a = routingRows(s).rows.find((r) => r.id === 'A');
+    expect(a).toMatchObject({ selected: true, kind: 'safe', throughZone: true });
+    expect(routingRows(createInitialState()).rows.find((r) => r.id === 'B')?.throughZone).toBe(false);
+  });
+});
+
+describe('kpiTiles — tren Planet relatif terhadap reaktif', () => {
+  it('recovery rate lebih rendah dari baseline → "worse", bukan hijau', () => {
+    const n = runTicks(createInitialState({ policy: 'nivora' }), 240);
+    const r = runTicks(createInitialState({ policy: 'reactive' }), 240);
+    n.metrics.handled = 100;
+    n.metrics.recovered = 78;
+    r.metrics.handled = 100;
+    r.metrics.recovered = 100;
+    expect(kpiTiles(n, r)[1]).toMatchObject({ value: '78%', trend: 'worse', reactive: '100%' });
   });
 });
