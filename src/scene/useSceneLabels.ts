@@ -14,9 +14,19 @@ const selectKey = (s: SimStore) => sceneLabelKey(selectViewed(s));
 export function useSceneLabels(): readonly SceneLabel[] {
   const key = useThrottledSim(selectKey, UI_TEXT_MS);
   const selected = useView((s) => s.selected);
+  const hoveredFacility = useView((s) => s.hoveredFacility);
   return useMemo(() => {
     void key;
     const s = selectViewed(useSim.getState());
-    return [...buildSceneLabels(s.nodes, selected), ...buildRouteLabels(s)];
-  }, [key, selected]);
+    const top = s.nodes.find((n) => n.id === s.ranking[0]);
+    return [
+      ...buildSceneLabels(s.nodes, {
+        selected,
+        hoveredFacility,
+        destination: s.recommendation?.destination ?? null,
+        autoCard: top?.status === 'critical' ? top.id : null,
+      }),
+      ...buildRouteLabels(s),
+    ];
+  }, [key, selected, hoveredFacility]);
 }
