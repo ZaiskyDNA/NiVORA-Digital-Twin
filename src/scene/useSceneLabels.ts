@@ -4,11 +4,14 @@
  * re-render — re-render PlantScene sempat memicu ContactShadows merender ulang seluruh scene.
  */
 import { useMemo } from 'react';
-import { selectViewed, useSim } from '../store/useSim';
+import { UI_TEXT_MS, useThrottledSim } from '../ui/hooks';
+import { selectViewed, useSim, type SimStore } from '../store/useSim';
 import { buildRouteLabels, buildSceneLabels, sceneLabelKey, type SceneLabel } from './sceneLabels';
 
+const selectKey = (s: SimStore) => sceneLabelKey(selectViewed(s));
+
 export function useSceneLabels(): readonly SceneLabel[] {
-  const key = useSim((s) => sceneLabelKey(selectViewed(s)));
+  const key = useThrottledSim(selectKey, UI_TEXT_MS);
   return useMemo(() => {
     void key;
     const s = selectViewed(useSim.getState());
