@@ -7,7 +7,7 @@ export function LabelLayer() {
   return (
     <div className="pointer-events-none absolute inset-0 z-[var(--z-scene-overlay)] overflow-hidden" aria-hidden>
       {labels
-        .filter((l) => l.kind !== 'card')
+        .filter((l) => l.kind === undefined || l.kind === 'label')
         .map((l) => (
           <div
             key={l.id}
