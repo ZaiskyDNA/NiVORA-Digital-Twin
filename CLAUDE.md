@@ -360,3 +360,12 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 - Preset kamera = target + polar + azimuth + pengali zoom (`CAMERA_PRESETS_POSE`); transisi damped, dibatalkan saat pengguna menyeret; reduced-motion = lompat langsung. Polar dibatasi ≤ 68°, titik orbit dijepit di dalam lantai.
 - Label callout **tidak** memakai drei `<Html>` per objek (satu React root per label → error unmount di React 19 StrictMode). Satu `LabelLayer` DOM di luar Canvas; posisi ditulis per frame lewat ref oleh `LabelLeaders` (`scene/labelRegistry.ts`). Pola yang sama dipakai untuk NodeCard di Fase 5.
 - Warna scene dari `src/styles/tokens.ts` (mirror `tokens.css`, dijaga test); warna fasilitas khusus scene di `scene/palette.ts`. Grid cyan 7%/14% = warna yang sudah dicampur ke lantai (drei Grid tanpa opacity). Tanpa `Environment` preset (butuh unduhan CDN — demo harus offline).
+
+### 13.12 Scene dinamis (Fase 4)
+- Store → scene lewat `scene/simFrame.ts`: objek modul berisi `prev`/`curr` SimState (via `useSim.subscribe`) + `tickAlpha()` untuk interpolasi antar-tick. Semua animasi membaca ini di `useFrame` dan menulis ke ref — tidak ada `setState` per frame dan tidak ada `new` di `useFrame`.
+- Perubahan struktural (rute, barikade, teks/warna label) memakai selector yang mengembalikan **string kunci** agar re-render hanya saat benar-benar berubah. `PlantScene` sendiri **tidak boleh** berlangganan store: re-render-nya sempat membuat ContactShadows merender ulang seluruh scene (render ganda ±8% frame).
+- Geometri statis digabung (`scene/staticGeometry.ts`): semua bangunan + conveyor = 1 mesh warna per-vertex; semua tepi menyala = 1 LineSegments2; jalan = 1 mesh; garis penunjuk label = 1 LineSegments2. Draw call turun 404 → ±70.
+- Debu: posisi partikel dihitung di vertex shader; CPU hanya `drawRange` (∝ PM²), opacity, dan uniform. Pekerja & bijih conveyor: InstancedMesh. Truk: slot = `HAULING.fleet`, posisi = parameter ruas yang diinterpolasi lalu dievaluasi di polyline Dijkstra.
+- Bloom selektif: `luminanceThreshold = 1`; hanya material HDR (`toneMapped={false}`, warna × >1) — beacon, safe route, lampu truk — yang menyala. EffectComposer mematikan tone mapping renderer → `ToneMapping` ACES di akhir chain.
+- `eslint`: `react-hooks/immutability` dimatikan khusus `src/scene/**` (mutasi objek three di `useFrame` adalah pola resmi R3F).
+- Dev-only: `window.__nivoraPerf` (fps, draw call, segitiga, deteksi render ganda) & `window.__nivoraSim` (store) untuk pengujian.
