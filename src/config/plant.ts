@@ -1,7 +1,7 @@
 /**
  * Layout fasilitas, node, dan graf rute (§6). Data, bukan kode.
- * Koordinat dunia [x, y, z]; lantai ±42 × ±30. Posisi kira-kira — disetel ulang di Fase 3
- * terhadap docs/reference.png. Semua nilai ilustratif.
+ * Koordinat dunia [x, y, z]; lantai ±42 × ±30. Posisi dipetakan dari docs/reference.png dengan
+ * kalibrasi proyeksi isometrik (azimuth 45°, elevasi ±35°) pada keempat sudut lantai. Ilustratif.
  */
 import type { PathwayStage } from '../sim/pathway';
 import type { Graph, NodeSeed, Vec3 } from '../sim/types';
@@ -14,7 +14,7 @@ export const NODE_SEEDS: NodeSeed[] = [
   {
     id: 'A',
     name: 'Transfer Point 1',
-    position: [0, 0, 2],
+    position: [-5, 0, 17],
     residueLevel: 45,
     pm: 5.5,
     zoneId: 'wz-high',
@@ -27,7 +27,7 @@ export const NODE_SEEDS: NodeSeed[] = [
   {
     id: 'B',
     name: 'Transfer Point 2',
-    position: [8, 0, -6],
+    position: [-5, 0, 0],
     residueLevel: 40,
     pm: 4.5,
     zoneId: 'zone-b',
@@ -40,7 +40,7 @@ export const NODE_SEEDS: NodeSeed[] = [
   {
     id: 'C',
     name: 'Stockpile Edge',
-    position: [20, 0, 10],
+    position: [21, 0, 9],
     residueLevel: 58,
     pm: 3,
     zoneId: 'zone-c',
@@ -51,6 +51,9 @@ export const NODE_SEEDS: NodeSeed[] = [
     material: { compatibleWithProcess: false, secondaryUse: false, recoverableValue: false, treatable: true },
   },
 ];
+
+/** Bentuk penanda node di scene: menara transfer (conveyor) atau tiang sensor. */
+export const NODE_MARKER: Record<string, 'tower' | 'pole'> = { A: 'tower', B: 'tower', C: 'pole' };
 
 /**
  * Potret Lampiran 4 esai: A (H8 P9 W9 T5) → 8.4, B (H7 P6 W3 T4) → 5.1, C (H6 P3 W0 T2) → 2.6.
@@ -114,20 +117,35 @@ export interface Facility {
 }
 
 export const FACILITIES: Facility[] = [
-  { id: 'stockpile', kind: 'stockpile', position: [16, 0, 16], size: [10, 4, 8] },
-  { id: 'crusher', kind: 'crusher', position: [8, 0, 8], size: [5, 5, 5] },
-  { id: 'smelter', kind: 'smelter', position: [-2, 0, -14], size: [14, 9, 10] },
-  { id: 'reprocessing', kind: 'reprocessing', position: [-18, 0, -2], size: [6, 5, 6] },
-  { id: 'recovery', kind: 'recovery', position: [6, 0, -18], size: [6, 4, 6] },
-  { id: 'treatment', kind: 'treatment', position: [26, 0, -10], size: [6, 4, 6] },
-  { id: 'disposal', kind: 'disposal', position: [32, 0, 6], size: [10, 0.5, 7] },
+  { id: 'stockpile', kind: 'stockpile', position: [29, 0, 17], size: [14, 5, 12] },
+  { id: 'crusher', kind: 'crusher', position: [13.5, 0, 15], size: [7, 6, 7] },
+  { id: 'smelter', kind: 'smelter', position: [-26, 0, -3], size: [18, 12, 14] },
+  { id: 'reprocessing', kind: 'reprocessing', position: [-31, 0, 15.5], size: [8, 7, 8] },
+  { id: 'recovery', kind: 'recovery', position: [-14, 0, -19], size: [7, 5, 7] },
+  { id: 'treatment', kind: 'treatment', position: [5, 0, -17], size: [8, 6, 8] },
+  { id: 'disposal', kind: 'disposal', position: [24, 0, -20], size: [12, 0.5, 9] },
+];
+
+/**
+ * Conveyor (§6): Crusher → Node A → Node B → Smelter. Titik [x, y, z]; y = ketinggian ujung belt.
+ */
+export interface Conveyor {
+  id: string;
+  from: Vec3;
+  to: Vec3;
+}
+
+export const CONVEYORS: Conveyor[] = [
+  { id: 'conveyor-1', from: [10, 4.5, 15.2], to: [-3.4, 7.5, 16.8] },
+  { id: 'conveyor-2', from: [-5, 7.5, 15.4], to: [-5, 8.5, 1.6] },
+  { id: 'conveyor-3', from: [-6.6, 8.5, -0.3], to: [-17, 11, -2] },
 ];
 
 /** Zona pekerja. `wz-high` = zona aktivitas tinggi antara Node A & Reprocessing (§6). */
 export const WORKER_ZONES: { id: string; center: Vec3; size: [number, number] }[] = [
-  { id: 'wz-high', center: [-9, 0, 3], size: [8, 7] },
-  { id: 'zone-b', center: [8, 0, -8], size: [6, 4] },
-  { id: 'zone-c', center: [20, 0, 12], size: [6, 4] },
+  { id: 'wz-high', center: [-18, 0, 17.5], size: [8, 7] },
+  { id: 'zone-b', center: [-1.5, 0, -2.5], size: [6, 4] },
+  { id: 'zone-c', center: [18.5, 0, 12], size: [5, 4] },
 ];
 
 /** Tahap pathway → fasilitas tujuan (§5.4, §13.6). Repurpose/Recycle ditangani unit Reprocessing. */
@@ -147,19 +165,20 @@ export const STAGE_FACILITY: Record<PathwayStage, string> = {
 // R pada edge ini = snapshot awal; R dinamis dihitung engine dari pekerja di `zoneId` (Fase 2).
 export const ROUTE_GRAPH: Graph = {
   vertices: [
-    { id: 'nodeA', position: [0, 0, 2] },
-    { id: 'nodeB', position: [8, 0, -6] },
-    { id: 'nodeC', position: [20, 0, 10] },
-    { id: 'wz', position: [-9, 0, 3] },
-    { id: 'j1', position: [2, 0, -5] },
-    { id: 'j2', position: [-14, 0, -7] },
-    { id: 'j3', position: [0, 0, 12] },
-    { id: 'j4', position: [-16, 0, 10] },
-    { id: 'j5', position: [18, 0, 3] },
-    { id: 'reprocessing', position: [-18, 0, -2] },
-    { id: 'recovery', position: [6, 0, -18] },
-    { id: 'treatment', position: [26, 0, -10] },
-    { id: 'disposal', position: [32, 0, 6] },
+    { id: 'nodeA', position: [-5, 0, 17] },
+    { id: 'nodeB', position: [-5, 0, 0] },
+    { id: 'nodeC', position: [21, 0, 9] },
+    { id: 'wz', position: [-18, 0, 17.5] },
+    { id: 'j1', position: [-8, 0, 9] },
+    { id: 'j2', position: [-25, 0, 9] },
+    { id: 'j3', position: [-3, 0, 26] },
+    { id: 'j4', position: [-24, 0, 26] },
+    { id: 'j5', position: [14, 0, 4] },
+    { id: 'j6', position: [-12, 0, -12] },
+    { id: 'reprocessing', position: [-31, 0, 15.5] },
+    { id: 'recovery', position: [-14, 0, -19] },
+    { id: 'treatment', position: [5, 0, -17] },
+    { id: 'disposal', position: [24, 0, -20] },
   ],
   edges: [
     // Rute A — terpendek, menembus zona pekerja
@@ -175,7 +194,9 @@ export const ROUTE_GRAPH: Graph = {
     { id: 'j4-reprocessing', from: 'j4', to: 'reprocessing', D: 1, R: 1, O: 1 },
     // Jaringan pendukung node B & C
     { id: 'nodeB-j1', from: 'nodeB', to: 'j1', D: 1, R: 1, O: 1 },
-    { id: 'j1-recovery', from: 'j1', to: 'recovery', D: 2, R: 1, O: 1 },
+    // j1 → recovery memutari smelter lewat j6 (Σ skor sama dengan satu ruas D2 R1 O1).
+    { id: 'j1-j6', from: 'j1', to: 'j6', D: 1, R: 0, O: 1 },
+    { id: 'j6-recovery', from: 'j6', to: 'recovery', D: 1, R: 1, O: 0 },
     { id: 'j1-j5', from: 'j1', to: 'j5', D: 3, R: 1, O: 2 },
     { id: 'nodeC-j5', from: 'nodeC', to: 'j5', D: 1, R: 0, O: 1 },
     { id: 'j3-j5', from: 'j3', to: 'j5', D: 3, R: 1, O: 1 },
