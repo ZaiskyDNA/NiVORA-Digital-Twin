@@ -354,3 +354,9 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 - R dinamis: R edge berzona = R snapshot × pekerja sekarang / pekerja baseline zona.
 - Truk dialihkan segera saat ruasnya diblokir (termasuk saat muat dan saat skenario diganti); bila sedang di ruas yang diblokir, truk mundur (`retreat`) ke awal ruas.
 - Store `useSim` memegang engine `nivora` + `reactive` (seed & skenario & bobot sama); `setWeights` menormalisasi Σ = 1. Jam: `store/clock.ts` (rAF). Halaman debug sementara: `#debug`.
+
+### 13.11 Scene 3D (Fase 3)
+- Kamera **ortografis isometrik sejati** (azimuth 45°, elevasi ≈35.26°) — hasil kalibrasi keempat sudut lantai `docs/reference.png` (galat < 10 px). Koordinat di `plant.ts` dipetakan dari referensi dengan kalibrasi yang sama. Zoom dasar mengikuti ukuran viewport (`scene/layout.ts`).
+- Preset kamera = target + polar + azimuth + pengali zoom (`CAMERA_PRESETS_POSE`); transisi damped, dibatalkan saat pengguna menyeret; reduced-motion = lompat langsung. Polar dibatasi ≤ 68°, titik orbit dijepit di dalam lantai.
+- Label callout **tidak** memakai drei `<Html>` per objek (satu React root per label → error unmount di React 19 StrictMode). Satu `LabelLayer` DOM di luar Canvas; posisi ditulis per frame lewat ref oleh `LabelLeaders` (`scene/labelRegistry.ts`). Pola yang sama dipakai untuk NodeCard di Fase 5.
+- Warna scene dari `src/styles/tokens.ts` (mirror `tokens.css`, dijaga test); warna fasilitas khusus scene di `scene/palette.ts`. Grid cyan 7%/14% = warna yang sudah dicampur ke lantai (drei Grid tanpa opacity). Tanpa `Environment` preset (butuh unduhan CDN — demo harus offline).
