@@ -50,3 +50,20 @@ export function normalizeWeights<T extends Record<string, number>>(weights: T): 
 export function rankByMweri(nodes: Pick<NodeState, 'id' | 'mweri'>[]): string[] {
   return [...nodes].sort((a, b) => b.mweri - a.mweri || a.id.localeCompare(b.id)).map((n) => n.id);
 }
+
+/**
+ * Ubah satu bobot lalu sebar sisanya (1 − nilai) ke bobot lain secara proporsional, sehingga Σ = 1
+ * tetap terjaga saat slider digeser (§5.1, WeightsDrawer). Bila bobot lain semuanya 0, sisa dibagi rata.
+ */
+export function rebalanceWeights<T extends { [K in keyof T]: number }>(weights: T, key: keyof T, value: number): T {
+  const v = clamp(value, 0, 1);
+  const others = (Object.keys(weights) as (keyof T)[]).filter((k) => k !== key);
+  const rest = 1 - v;
+  const sumOthers = others.reduce((s, k) => s + Math.max(0, weights[k] ?? 0), 0);
+  const out = { ...weights } as Record<keyof T, number>;
+  out[key] = v;
+  for (const k of others) {
+    out[k] = sumOthers > 0 ? (Math.max(0, weights[k] ?? 0) / sumOthers) * rest : rest / others.length;
+  }
+  return out as T;
+}
