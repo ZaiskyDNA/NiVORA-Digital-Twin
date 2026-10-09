@@ -53,6 +53,28 @@ export const FACILITY_LABEL: Record<string, string> = {
   disposal: 'Safe Disposal',
 };
 
+/** Keterangan singkat di bawah label fasilitas pada scene. */
+export const FACILITY_CAPTION: Record<string, string> = {
+  stockpile: 'bijih nikel',
+  crusher: 'sumber partikulat',
+  smelter: 'SCADA/DCS link',
+  reprocessing: 'tujuan residu layak proses',
+  recovery: 'pemulihan komponen bernilai',
+  treatment: 'pengelolaan khusus',
+  disposal: 'pilihan terakhir',
+};
+
+export const ZONE_LABEL = {
+  high: 'Zona aktivitas pekerja tinggi',
+  workersDetected: (n: number) => `${n} pekerja terdeteksi (berbasis zona)`,
+} as const;
+
+export const CAMERA_PRESET_LABEL = {
+  overview: 'Overview',
+  nodeA: 'Fokus Node A',
+  route: 'Rute',
+} as const;
+
 export const DISCLAIMER = {
   mweri:
     'MWERI adalah indeks prioritas, bukan instrumen diagnosis medis. Bobot perlu dikalibrasi data lapangan & ahli K3.',
