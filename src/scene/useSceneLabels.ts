@@ -4,7 +4,7 @@
  * re-render — re-render PlantScene sempat memicu ContactShadows merender ulang seluruh scene.
  */
 import { useMemo } from 'react';
-import { UI_TEXT_MS, useThrottledSim } from '../ui/hooks';
+import { UI_TEXT_MS, useIsMobile, useThrottledSim } from '../ui/hooks';
 import { selectViewed, useSim, type SimStore } from '../store/useSim';
 import { useView } from '../store/useView';
 import { buildRouteLabels, buildSceneLabels, sceneLabelKey, type SceneLabel } from './sceneLabels';
@@ -15,6 +15,7 @@ export function useSceneLabels(): readonly SceneLabel[] {
   const key = useThrottledSim(selectKey, UI_TEXT_MS);
   const selected = useView((s) => s.selected);
   const hoveredFacility = useView((s) => s.hoveredFacility);
+  const mobile = useIsMobile();
   return useMemo(() => {
     void key;
     const s = selectViewed(useSim.getState());
@@ -25,8 +26,10 @@ export function useSceneLabels(): readonly SceneLabel[] {
         hoveredFacility,
         destination: s.recommendation?.destination ?? null,
         autoCard: top?.status === 'critical' ? top.id : null,
+        mobile,
       }),
-      ...buildRouteLabels(s),
+      // Ponsel: rute terpilih dijelaskan di bottom sheet, bukan label melayang.
+      ...(mobile ? [] : buildRouteLabels(s)),
     ];
-  }, [key, selected, hoveredFacility]);
+  }, [key, selected, hoveredFacility, mobile]);
 }
