@@ -54,7 +54,7 @@ const place = (id: string, anchor: Vec3, fallbackUp = 3): Vec3 => {
 /** Puncak bangunan — smelter memperhitungkan cerobong. */
 const topOf = (f: Facility): number => (f.kind === 'smelter' ? f.size[1] * 1.75 : f.size[1]);
 
-export function buildSceneLabels(nodes: readonly NodeState[]): SceneLabel[] {
+export function buildSceneLabels(nodes: readonly NodeState[], selected: string | null = null): SceneLabel[] {
   const facilities = FACILITIES.map((f): SceneLabel => {
     const id = `facility-${f.id}`;
     const anchor: Vec3 = [f.position[0], topOf(f), f.position[2]];
@@ -71,14 +71,16 @@ export function buildSceneLabels(nodes: readonly NodeState[]): SceneLabel[] {
   const nodeLabels = nodes.map((n): SceneLabel => {
     const id = `node-${n.id}`;
     const anchor: Vec3 = [n.position[0], beaconHeight(n.id) + 0.5, n.position[2]];
+    const isSelected = n.id === selected;
     return {
       id,
       anchor,
-      at: place(id, anchor),
+      // Kartu detail node terpilih menempel di kanan beacon (kamera fokus menyisakan ruang di sana).
+      at: isSelected ? offsetOnScreen(anchor, 2.5, -1) : place(id, anchor),
       title: `Node ${n.id} · ${n.name}`,
       color: STATUS_COLOR[n.status],
       kind: 'card',
-      align: NODE_CARD_ALIGN[n.id] ?? 'above',
+      align: isSelected ? 'right' : (NODE_CARD_ALIGN[n.id] ?? 'above'),
     };
   });
 
@@ -137,7 +139,9 @@ export function buildRouteLabels(s: SimState): SceneLabel[] {
         id: 'route-safe',
         anchor: at,
         at: offsetOnScreen(at, -8, 0.8),
-        title: ROUTE_LABEL.safe(candidateOf(rec.route), costOf(rec.route)),
+        title: rec.route.edges.some((e) => e.zoneId)
+          ? ROUTE_LABEL.chosenInZone(candidateOf(rec.route), costOf(rec.route))
+          : ROUTE_LABEL.safe(candidateOf(rec.route), costOf(rec.route)),
         color: COLOR.safe,
       });
     }
