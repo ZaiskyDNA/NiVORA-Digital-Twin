@@ -39,6 +39,17 @@ function KpiTile({ tile }: { tile: KpiTileView }) {
         <span className="sr-only">{tile.sr}</span>
       </p>
       <p className="text-caption text-fg-3">{empty ? UI.impact.waiting : CAPTION[tile.key]}</p>
+      {/* Nilai kedua mode berdampingan (design-system §4.4, mode Compare). */}
+      <dl className="mt-2 space-y-0.5 border-t border-line pt-1.5 font-mono text-caption">
+        <div className="flex justify-between gap-1">
+          <dt className="text-safe">{UI.compare.nivora}</dt>
+          <dd className="text-fg">{tile.nivora}</dd>
+        </div>
+        <div className="flex justify-between gap-1">
+          <dt className="text-critical-fg">{UI.compare.reactive.slice(0, 4)}.</dt>
+          <dd className="text-fg-2">{tile.reactive}</dd>
+        </div>
+      </dl>
     </div>
   );
 }
