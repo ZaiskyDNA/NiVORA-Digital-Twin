@@ -6,15 +6,17 @@
 import { useMemo } from 'react';
 import { UI_TEXT_MS, useThrottledSim } from '../ui/hooks';
 import { selectViewed, useSim, type SimStore } from '../store/useSim';
+import { useView } from '../store/useView';
 import { buildRouteLabels, buildSceneLabels, sceneLabelKey, type SceneLabel } from './sceneLabels';
 
 const selectKey = (s: SimStore) => sceneLabelKey(selectViewed(s));
 
 export function useSceneLabels(): readonly SceneLabel[] {
   const key = useThrottledSim(selectKey, UI_TEXT_MS);
+  const selected = useView((s) => s.selected);
   return useMemo(() => {
     void key;
     const s = selectViewed(useSim.getState());
-    return [...buildSceneLabels(s.nodes), ...buildRouteLabels(s)];
-  }, [key]);
+    return [...buildSceneLabels(s.nodes, selected), ...buildRouteLabels(s)];
+  }, [key, selected]);
 }
