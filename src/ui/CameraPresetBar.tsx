@@ -16,7 +16,7 @@ export function CameraPresetBar() {
   };
 
   return (
-    <div role="radiogroup" aria-label="Preset kamera" className="flex gap-2" onKeyDown={onKeyDown}>
+    <div role="radiogroup" aria-label="Preset kamera" className="flex flex-wrap gap-2" onKeyDown={onKeyDown}>
       {CAMERA_PRESETS.map((p) => {
         const checked = p === preset;
         return (
