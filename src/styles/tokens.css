@@ -1,0 +1,138 @@
+/*
+ * NiVORA design tokens — sumber kebenaran tunggal.
+ * Spesifikasi & alasan: docs/design-system.md. Kontras WCAG AA sudah diverifikasi (lihat §3 dokumen itu).
+ *
+ * Tailwind v4: semua yang ada di @theme otomatis menjadi utility
+ * (mis. --color-surface-1 → bg-surface-1, --radius-panel → rounded-panel).
+ * Tidak ada tailwind.config — lihat CLAUDE.md §13.1.
+ */
+
+@theme {
+  /* Reset palet bawaan Tailwind: hanya token NiVORA yang boleh dipakai. */
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* ── Kanvas & permukaan ─────────────────────────────────────────── */
+  --color-canvas: #070c16; /* latar terdalam, tepi radial */
+  --color-canvas-glow: #13233b; /* pusat radial di belakang scene */
+  --color-floor: #1b2c45; /* lantai pabrik 3D */
+  --color-surface-0: #0b1424; /* Panel, NodeCard */
+  --color-surface-1: #111e33; /* KPI tile, chip, baris tabel */
+  --color-surface-2: #172a45; /* hover, baris terpilih */
+
+  /* ── Garis ──────────────────────────────────────────────────────── */
+  --color-line: #1d2e48; /* pemisah dekoratif (tidak wajib 3:1) */
+  --color-line-strong: #2a4266; /* tepi panel */
+  --color-line-control: #5577a2; /* batas kontrol interaktif — ≥3:1 di semua surface */
+
+  /* ── Teks ───────────────────────────────────────────────────────── */
+  --color-fg: #e8f0fc; /* utama — ≥12.6:1 */
+  --color-fg-2: #a9bad3; /* sekunder, label di wadah ber-tint — ≥7.3:1 */
+  --color-fg-3: #8597b3; /* muted, HANYA di surface polos — ≥4.8:1 */
+  --color-fg-disabled: #56677f; /* hanya kontrol non-aktif (dikecualikan WCAG) */
+  --color-on-status: #06101c; /* teks di atas fill status solid */
+
+  /* ── Status (fill, ikon, glow, teks) ────────────────────────────── */
+  --color-normal: #2bd99f;
+  --color-warning: #ffb020;
+  --color-critical: #ff4d5e; /* fill/glow; untuk teks pakai critical-fg */
+  --color-critical-fg: #ff7682; /* teks merah — ≥4.7:1 termasuk di tint */
+  --color-high: #ff7a3d; /* kelas MWERI "Tinggi" (6–8) */
+
+  /* ── Peran khusus ───────────────────────────────────────────────── */
+  --color-safe: #22e1ff; /* DICADANGKAN: safe route & rekomendasi NiVORA */
+  --color-accent: #6fb6ff; /* interaktif, judul panel, fokus */
+  --color-worker: #f2a33a; /* figur & zona pekerja (3D + legenda) */
+  /* Tint status = bg-<status>/16 (hanya latar yang transparan, teks tetap pekat). */
+
+  /* ── Tipografi ──────────────────────────────────────────────────── */
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Skala (min. 12px; body dashboard 14px). Format: ukuran + line-height. */
+  --text-label: 0.75rem; /* 12 — label metrik, header tabel (uppercase) */
+  --text-label--line-height: 1rem;
+  --text-label--letter-spacing: 0.06em;
+  --text-label--font-weight: 600;
+  --text-caption: 0.8125rem; /* 13 — rumus, catatan, alasan */
+  --text-caption--line-height: 1.125rem;
+  --text-body: 0.875rem; /* 14 — teks panel */
+  --text-body--line-height: 1.375rem;
+  --text-title: 0.8125rem; /* 13 — judul panel (uppercase) */
+  --text-title--line-height: 1.125rem;
+  --text-title--letter-spacing: 0.08em;
+  --text-title--font-weight: 700;
+  --text-heading: 1rem; /* 16 — nama node di ranking */
+  --text-heading--line-height: 1.375rem;
+  --text-metric: 1.5rem; /* 24 — nilai di NodeCard / KPI */
+  --text-metric--line-height: 1.75rem;
+  --text-metric-lg: 2rem; /* 32 — skor MWERI di ranking */
+  --text-metric-lg--line-height: 2.25rem;
+  --text-display: 1.75rem; /* 28 — judul aplikasi */
+  --text-display--line-height: 2.125rem;
+
+  /* ── Spacing semantik (skala dasar tetap 4px dari Tailwind) ────── */
+  --spacing-panel: 1.25rem; /* 20 — padding Panel */
+  --spacing-tile: 0.75rem; /* 12 — padding KPI tile / NodeCard */
+  --spacing-gutter: 1.5rem; /* 24 — jarak panel ke tepi layar */
+  --spacing-stack: 0.75rem; /* 12 — jarak antar blok dalam panel */
+  --spacing-panel-w: 21.25rem; /* 340 — lebar panel samping */
+  --spacing-card-w: 18.75rem; /* 300 — lebar NodeCard */
+  --spacing-control: 2rem; /* 32 — tinggi chip/tombol (≥24 WCAG 2.5.8) */
+  --spacing-row: 2rem; /* 32 — tinggi baris tabel */
+
+  /* ── Radius: berhierarki, bukan satu nilai untuk semua ─────────── */
+  --radius-badge: 0.25rem; /* 4 */
+  --radius-control: 0.5rem; /* 8 — chip, tombol, pathway step */
+  --radius-tile: 0.625rem; /* 10 — KPI tile, kotak rekomendasi */
+  --radius-card: 0.75rem; /* 12 — NodeCard */
+  --radius-panel: 1rem; /* 16 — Panel */
+
+  /* ── Elevasi: di tema gelap, kedalaman = highlight atas + bayangan pekat ── */
+  --shadow-panel: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 16px 40px -16px rgb(0 0 0 / 0.7);
+  --shadow-raised: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 6px 16px -8px rgb(0 0 0 / 0.6);
+  --shadow-glow-normal: 0 0 0 1px rgb(43 217 159 / 0.55), 0 0 28px -8px rgb(43 217 159 / 0.45);
+  --shadow-glow-warning: 0 0 0 1px rgb(255 176 32 / 0.6), 0 0 28px -8px rgb(255 176 32 / 0.45);
+  --shadow-glow-critical: 0 0 0 1px rgb(255 77 94 / 0.65), 0 0 32px -6px rgb(255 77 94 / 0.55);
+  --shadow-glow-safe: 0 0 0 1px rgb(34 225 255 / 0.5), 0 0 28px -8px rgb(34 225 255 / 0.5);
+
+  /* ── Gerak ──────────────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --animate-beacon: beacon 1.6s var(--ease-in-out) infinite;
+  --animate-beacon-fast: beacon 0.8s var(--ease-in-out) infinite;
+
+  @keyframes beacon {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.45;
+      transform: scale(0.8);
+    }
+  }
+}
+
+/* Token non-utility (dibaca langsung oleh CSS & scene 3D). */
+:root {
+  --duration-fast: 120ms; /* hover, pressed */
+  --duration-base: 200ms; /* toggle, perubahan status */
+  --duration-slow: 320ms; /* buka/tutup panel & drawer */
+
+  --z-scene: 0;
+  --z-scene-overlay: 10; /* NodeCard & label drei <Html> */
+  --z-panel: 20;
+  --z-drawer: 40;
+  --z-toast: 50;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}
