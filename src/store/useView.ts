@@ -15,12 +15,21 @@ interface ViewStore {
   selected: string | null;
   weightsOpen: boolean;
   whatIf: WhatIfResult | null;
+  /** Mode fokus (tombol H): sembunyikan semua panel kecuali kartu Rekomendasi. */
+  focusMode: boolean;
+  /** Mode "Bandingkan reaktif": tampilkan strip KPI NiVORA vs reaktif. */
+  compareMode: boolean;
+  /** Fasilitas yang sedang di-hover di scene — labelnya muncul (progressive disclosure). */
+  hoveredFacility: string | null;
 
   setPreset: (preset: ButtonPreset) => void;
   /** Pilih node → kamera fokus + kartu detail. `null` menutup detail & kembali ke overview. */
   selectNode: (id: string | null) => void;
   setWeightsOpen: (open: boolean) => void;
   setWhatIf: (result: WhatIfResult | null) => void;
+  setFocusMode: (on: boolean) => void;
+  setCompareMode: (on: boolean) => void;
+  setHoveredFacility: (id: string | null) => void;
 }
 
 export const useView = create<ViewStore>()((set, get) => ({
@@ -29,6 +38,9 @@ export const useView = create<ViewStore>()((set, get) => ({
   selected: null,
   weightsOpen: false,
   whatIf: null,
+  focusMode: false,
+  compareMode: false,
+  hoveredFacility: null,
 
   setPreset: (preset) => set((s) => ({ preset, presetNonce: s.presetNonce + 1, selected: null })),
   selectNode: (id) => {
@@ -40,4 +52,8 @@ export const useView = create<ViewStore>()((set, get) => ({
   },
   setWeightsOpen: (weightsOpen) => set({ weightsOpen }),
   setWhatIf: (whatIf) => set({ whatIf }),
+  setFocusMode: (focusMode) => set({ focusMode }),
+  setCompareMode: (compareMode) => set({ compareMode }),
+  setHoveredFacility: (hoveredFacility) =>
+    get().hoveredFacility === hoveredFacility ? undefined : set({ hoveredFacility }),
 }));
