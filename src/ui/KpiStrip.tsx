@@ -16,7 +16,8 @@ const LABEL: Record<KpiTileView['key'], string> = {
   productivity: UI.kpi.productivity,
 };
 
-export function KpiStrip() {
+/** `embedded`: versi bertumpuk di bottom sheet ponsel. */
+export function KpiStrip({ embedded = false }: { embedded?: boolean }) {
   const tiles = JSON.parse(useThrottledSim(selectTiles, UI_CHART_MS)) as KpiTileView[];
   const view = useSim((s) => s.view);
   const setView = useSim((s) => s.setView);
@@ -24,7 +25,11 @@ export function KpiStrip() {
   return (
     <section
       aria-label={UI.kpi.title}
-      className="pointer-events-auto flex flex-wrap items-center gap-x-6 gap-y-3 rounded-panel border border-line-strong bg-surface-0/95 px-panel py-3 shadow-panel"
+      className={
+        embedded
+          ? 'pointer-events-auto flex flex-col gap-4'
+          : 'pointer-events-auto flex flex-wrap items-center gap-x-6 gap-y-3 rounded-panel border border-line-strong bg-surface-0/95 px-panel py-3 shadow-panel'
+      }
     >
       <div className="flex items-center gap-2">
         <span className="text-label uppercase text-fg-3">{UI.kpi.scene}</span>
@@ -53,15 +58,15 @@ export function KpiStrip() {
         </div>
       </div>
 
-      <dl className="flex flex-wrap gap-x-6 gap-y-2">
+      <dl className={embedded ? 'grid gap-3' : 'flex flex-wrap gap-x-6 gap-y-2'}>
         {tiles.map((t) => (
-          <div key={t.key} className="flex items-baseline gap-2">
+          <div key={t.key} className={embedded ? 'grid grid-cols-[1fr_auto] items-baseline gap-x-3' : 'flex items-baseline gap-2'}>
             <dt className="text-caption text-fg-2">{LABEL[t.key]}</dt>
             <dd className={`font-mono text-heading font-semibold ${TREND[t.trend]}`}>
               {t.value}
               <span className="sr-only"> ({t.sr})</span>
             </dd>
-            <dd className="font-mono text-caption text-fg-3">
+            <dd className={`font-mono text-caption text-fg-3 ${embedded ? 'col-span-2' : ''}`}>
               {t.nivora} {UI.compare.vs} {t.reactive}
             </dd>
           </div>
