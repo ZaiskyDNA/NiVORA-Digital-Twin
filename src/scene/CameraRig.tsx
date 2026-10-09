@@ -7,7 +7,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef, type ComponentRef } from 'react';
 import { MathUtils, Vector3 } from 'three';
 import { useView } from '../store/useView';
-import { baseZoom, CAMERA_PRESETS_POSE, cameraPosition, FLOOR_SIZE } from './layout';
+import { baseZoom, CAMERA_PRESETS_POSE, cameraPosition, FLOOR_SIZE, focusPose } from './layout';
 
 type OrbitControlsImpl = ComponentRef<typeof OrbitControls>;
 
@@ -39,9 +39,10 @@ export function CameraRig() {
 
   const nonce = useView((s) => s.presetNonce);
   const preset = useView((s) => s.preset);
+  const selected = useView((s) => s.selected);
 
   useEffect(() => {
-    const p = CAMERA_PRESETS_POSE[preset];
+    const p = preset === 'focus' && selected ? focusPose(selected) : CAMERA_PRESETS_POSE[preset === 'focus' ? 'overview' : preset];
     const next: Goal = {
       position: new Vector3(...cameraPosition(p)),
       target: new Vector3(...p.target),
@@ -61,7 +62,7 @@ export function CameraRig() {
     } else {
       goal.current = next;
     }
-  }, [preset, nonce, get, base]);
+  }, [preset, selected, nonce, get, base]);
 
   useFrame(({ camera }, dt) => {
     const c = controls.current;
