@@ -41,8 +41,10 @@ export const CAMERA_PRESETS_POSE: Record<ButtonPreset, CameraPose> = {
  * Pose fokus ke sebuah node (klik node): isometrik, diperbesar. Titik orbit digeser ke kanan layar
  * dari node sehingga node tampil di kiri-tengah dan kartu detail (di kanan beacon) muat utuh.
  */
-export function focusPose(nodeId: string): CameraPose {
+export function focusPose(nodeId: string, mobile = false): CameraPose {
   const p = NODE_SEEDS.find((n) => n.id === nodeId)?.position ?? [0, 0, 0];
+  // Ponsel: detail ada di bottom sheet → node di tengah, sedikit ke atas layar.
+  if (mobile) return { target: [p[0], 3, p[2]], polar: ISO_POLAR, azimuth: ISO_AZIMUTH, zoom: 1.7 };
   return { target: offsetOnScreen([p[0], 3, p[2]], 7, 0), polar: ISO_POLAR, azimuth: ISO_AZIMUTH, zoom: 2.2 };
 }
 
@@ -50,11 +52,28 @@ export function focusPose(nodeId: string): CameraPose {
  * Zoom dasar (px per unit dunia) agar seluruh lantai muat seperti di referensi
  * (diagonal lantai ≈ 72% lebar layar).
  */
-export function baseZoom(width: number, height: number): number {
+export function baseZoom(width: number, height: number, mobile = false): number {
   const [w, d] = FLOOR_SIZE;
   const isoWidth = (w + d) / Math.SQRT2; // lebar belah ketupat lantai di layar, dalam unit
   const isoHeight = isoWidth * Math.cos(ISO_POLAR) + 12; // + ruang untuk bangunan tinggi
+  // Ponsel: tanpa panel samping — lantai memenuhi lebar (ujung kiri/kanan lantai boleh terpotong
+  // sedikit), tinggi menyisakan TopBar & bottom sheet.
+  if (mobile) {
+    // Lanskap ponsel: sheet di kiri-bawah, scene memakai sisa tinggi di bawah TopBar.
+    if (width > height) return Math.min((width * 0.62) / isoWidth, (height * 0.8) / isoHeight);
+    return Math.min((width * 1.25) / isoWidth, (height * 0.62) / isoHeight);
+  }
   return Math.min((width * 0.72) / isoWidth, (height * 0.78) / isoHeight);
+}
+
+/**
+ * Ponsel: geser proyeksi (fraksi lebar/tinggi layar; positif = isi bergeser ke kiri/atas) agar
+ * pusat scene jatuh di area yang tidak tertutup TopBar & bottom sheet. Potret: ke atas, lebih jauh
+ * saat detail node terbuka. Lanskap: sheet di kiri-bawah → isi ke kanan, sedikit ke bawah TopBar.
+ */
+export function mobileViewShift(width: number, height: number, sheetOpen: boolean): { x: number; y: number } {
+  if (width > height) return { x: -0.17, y: -0.06 };
+  return { x: 0, y: sheetOpen ? 0.25 : 0.05 };
 }
 
 /** Posisi kamera dari pose (jarak tetap — ortografis tidak bergantung jarak). */
