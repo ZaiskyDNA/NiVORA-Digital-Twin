@@ -69,6 +69,11 @@ export const ZONE_LABEL = {
   workersDetected: (n: number) => `${n} pekerja terdeteksi (berbasis zona)`,
 } as const;
 
+export const ROUTE_LABEL = {
+  safe: (id: string | null, cost: string) => `${id ? `Rute ${id} · ` : ''}Safe Route · C=${cost} ✓`,
+  shortest: (id: string | null, cost: string) => `${id ? `Rute ${id} · ` : ''}terpendek · C=${cost} ✕`,
+} as const;
+
 export const CAMERA_PRESET_LABEL = {
   overview: 'Overview',
   nodeA: 'Fokus Node A',
