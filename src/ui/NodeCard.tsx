@@ -39,7 +39,8 @@ function Metric({
   );
 }
 
-export function NodeCard({ nodeId }: { nodeId: string }) {
+/** `embedded`: detail node di bottom sheet ponsel (lebar penuh). */
+export function NodeCard({ nodeId, embedded = false }: { nodeId: string; embedded?: boolean }) {
   const select = useCallback((s: SimStore) => JSON.stringify(nodeCardView(selectViewed(s), nodeId)), [nodeId]);
   const v = JSON.parse(useThrottledSim(select, UI_TEXT_MS)) as NodeCardView | null;
   const narrow = useMediaQuery(NARROW_QUERY);
@@ -58,7 +59,7 @@ export function NodeCard({ nodeId }: { nodeId: string }) {
     .join(' + ');
   const prediction =
     v.ttc === null ? UI.card.stable : v.ttc === 0 ? UI.card.criticalNow : UI.card.criticalIn(v.ttc);
-  const width = isSelected ? 'w-[22rem]' : compact ? 'w-60' : 'w-card-w';
+  const width = embedded ? 'w-full' : isSelected ? 'w-[22rem]' : compact ? 'w-60' : 'w-card-w';
 
   return (
     <article
