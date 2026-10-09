@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "description": "NiVORA — Human-Centric Digital Twin untuk pengelolaan residu nikel (prototype visualisasi konsep)",
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
