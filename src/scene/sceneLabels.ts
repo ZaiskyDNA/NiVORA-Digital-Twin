@@ -17,7 +17,13 @@ export interface SceneLabel {
   title: string;
   caption?: string;
   color: string;
+  /** 'card' = NodeCard (dirender NodeCardLayer); default label callout. */
+  kind?: 'label' | 'card';
+  /** Sisi kotak yang menempel ke titik `at`. Default: kotak di atas titik. */
+  align?: LabelAlign;
 }
+
+export type LabelAlign = 'above' | 'below' | 'right' | 'left';
 
 /**
  * Geseran label (kanan, atas) dalam unit dunia arah layar — meniru tata letak callout pada
@@ -31,11 +37,14 @@ const LABEL_OFFSET: Record<string, [number, number]> = {
   'facility-disposal': [-4, 4],
   'facility-crusher': [-6, 1],
   'facility-stockpile': [8, 1.5],
-  'node-A': [5, 4.5],
-  'node-B': [5, 3],
-  'node-C': [6, 2],
+  // NodeCard: A kiri-bawah & B kanan seperti referensi; C di bawah tiang agar tidak tertutup panel kanan.
+  'node-A': [-7, -12],
+  'node-B': [9, 3],
+  'node-C': [3, -6],
   'zone-wz-high': [-4, 1.5],
 };
+
+const NODE_CARD_ALIGN: Record<string, LabelAlign> = { A: 'below', B: 'right', C: 'below' };
 
 const place = (id: string, anchor: Vec3, fallbackUp = 3): Vec3 => {
   const [right, up] = LABEL_OFFSET[id] ?? [0, fallbackUp];
@@ -68,6 +77,8 @@ export function buildSceneLabels(nodes: readonly NodeState[]): SceneLabel[] {
       at: place(id, anchor),
       title: `Node ${n.id} · ${n.name}`,
       color: STATUS_COLOR[n.status],
+      kind: 'card',
+      align: NODE_CARD_ALIGN[n.id] ?? 'above',
     };
   });
 
