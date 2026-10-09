@@ -1,6 +1,24 @@
+import { lazy, Suspense, useSyncExternalStore } from 'react';
+
+const DebugPage = lazy(() => import('./debug/DebugPage'));
+
 const PILLARS = ['Predict', 'Protect', 'Circulate'] as const;
 
+const subscribeHash = (cb: () => void) => {
+  window.addEventListener('hashchange', cb);
+  return () => window.removeEventListener('hashchange', cb);
+};
+
 export default function App() {
+  const hash = useSyncExternalStore(subscribeHash, () => window.location.hash);
+  if (hash === '#debug') {
+    return (
+      <Suspense fallback={null}>
+        <DebugPage />
+      </Suspense>
+    );
+  }
+
   return (
     <div className="relative flex h-full flex-col">
       <header className="flex items-center justify-between px-8 pt-6">
@@ -28,7 +46,11 @@ export default function App() {
       </header>
 
       <main className="grid flex-1 place-items-center">
-        <p className="font-mono text-caption text-fg-2">Scene 3D menyusul di Fase 3</p>
+        <p className="font-mono text-caption text-fg-2">Scene 3D menyusul di Fase 3 ·{' '}
+          <a className="text-accent underline" href="#debug">
+            buka debug engine
+          </a>
+        </p>
       </main>
 
       <footer className="px-8 pb-4 text-right text-label font-normal tracking-normal text-fg-3">
