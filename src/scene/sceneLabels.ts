@@ -4,9 +4,8 @@ import { FACILITIES, ROUTE_CANDIDATES, WORKER_ZONES, type Facility } from '../co
 import type { SimState } from '../sim/engine';
 import { compositeCost, type Route } from '../sim/routing';
 import type { NodeState, Vec3 } from '../sim/types';
-import { COLOR } from '../styles/tokens';
 import { beaconHeight, offsetOnScreen, ROUTE_Y, VERTEX_POS } from './layout';
-import { FACILITY_STYLE, STATUS_COLOR } from './palette';
+import { SCENE_PALETTE, type ScenePalette } from './palette';
 
 export interface SceneLabel {
   id: string;
@@ -72,6 +71,8 @@ export interface SceneLabelOptions {
    * dan rekomendasi pindah ke bottom sheet.
    */
   mobile?: boolean;
+  /** Palet tema aktif (default: gelap). */
+  palette?: ScenePalette;
 }
 
 /**
@@ -80,6 +81,7 @@ export interface SceneLabelOptions {
  */
 export function buildSceneLabels(nodes: readonly NodeState[], opts: SceneLabelOptions = {}): SceneLabel[] {
   const { selected = null, hoveredFacility = null, destination = null, autoCard = null, mobile = false } = opts;
+  const pal = opts.palette ?? SCENE_PALETTE.dark;
   const visibleFacilities = mobile ? [] : FACILITIES.filter((f) => f.id === hoveredFacility || f.id === destination);
   const facilities = visibleFacilities.map((f): SceneLabel => {
     const id = `facility-${f.id}`;
@@ -90,7 +92,7 @@ export function buildSceneLabels(nodes: readonly NodeState[], opts: SceneLabelOp
       at: place(id, anchor),
       title: FACILITY_LABEL[f.id] ?? f.id,
       caption: FACILITY_CAPTION[f.id],
-      color: FACILITY_STYLE[f.kind].edge,
+      color: pal.facility[f.kind].edge,
     };
   });
 
@@ -106,7 +108,7 @@ export function buildSceneLabels(nodes: readonly NodeState[], opts: SceneLabelOp
         anchor,
         at: offsetOnScreen(anchor, 0, 1.4),
         title: `Node ${n.id}`,
-        color: STATUS_COLOR[n.status],
+        color: pal.status[n.status],
         kind: 'pill',
         align: 'above',
       };
@@ -117,7 +119,7 @@ export function buildSceneLabels(nodes: readonly NodeState[], opts: SceneLabelOp
       // Kartu detail node terpilih menempel di kanan beacon (kamera fokus menyisakan ruang di sana).
       at: isSelected ? offsetOnScreen(anchor, 2.5, -1) : place(id, anchor),
       title: `Node ${n.id} · ${n.name}`,
-      color: STATUS_COLOR[n.status],
+      color: pal.status[n.status],
       kind: 'card',
       align: isSelected ? 'right' : (NODE_CARD_ALIGN[n.id] ?? 'above'),
     };
@@ -138,7 +140,7 @@ export function buildSceneLabels(nodes: readonly NodeState[], opts: SceneLabelOp
           align: 'below',
           title: ZONE_LABEL.high,
           caption: ZONE_LABEL.workersDetected(zoneWorkers),
-          color: COLOR.critical,
+          color: pal.criticalText,
         },
       ]
     : [];
@@ -167,7 +169,7 @@ function midpoint(route: Route): Vec3 | null {
  * Hanya rute terpilih yang diberi label (declutter). Rute terpendek cukup berupa garis merah
  * putus-putus; artinya dijelaskan di legenda.
  */
-export function buildRouteLabels(s: SimState): SceneLabel[] {
+export function buildRouteLabels(s: SimState, pal: ScenePalette = SCENE_PALETTE.dark): SceneLabel[] {
   const rec = s.recommendation;
   if (!rec) return [];
   const cost = compositeCost(s.weights.route);
@@ -184,7 +186,7 @@ export function buildRouteLabels(s: SimState): SceneLabel[] {
         title: rec.route.edges.some((e) => e.zoneId)
           ? ROUTE_LABEL.chosenInZone(candidateOf(rec.route), costOf(rec.route))
           : ROUTE_LABEL.safe(candidateOf(rec.route), costOf(rec.route)),
-        color: COLOR.safe,
+        color: pal.safe,
       });
     }
   }
