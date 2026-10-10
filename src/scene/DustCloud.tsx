@@ -5,11 +5,11 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, ShaderMaterial, type Points } from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, NormalBlending, ShaderMaterial, type Points } from 'three';
 import { createRng, nextFloat } from '../sim/rng';
 import type { Vec3 } from '../sim/types';
-import { DUST_COLOR } from './palette';
 import { lerp, simFrame, tickAlpha } from './simFrame';
+import { useScenePalette } from './useScenePalette';
 
 /** Partikel maksimum per node (PM = 10) — dikurangi ±40% saat declutter (dulu 260). */
 const MAX = 156;
@@ -55,6 +55,7 @@ interface Props {
 
 export function DustCloud({ index, position, height, seed }: Props) {
   const points = useRef<Points>(null);
+  const pal = useScenePalette();
 
   const { geometry, material } = useMemo(() => {
     const rng = createRng(seed);
@@ -75,19 +76,20 @@ export function DustCloud({ index, position, height, seed }: Props) {
       fragmentShader,
       transparent: true,
       depthWrite: false,
-      blending: AdditiveBlending,
+      // Aditif tidak terlihat di latar terang → di tema terang debu menggelapkan (normal blending).
+      blending: pal.dustAdditive ? AdditiveBlending : NormalBlending,
       uniforms: {
         uTime: { value: 0 },
         uRadius: { value: 4.2 },
         uHeight: { value: height + 3 },
         uSize: { value: 0.9 },
         uPxPerUnit: { value: 10 },
-        uColor: { value: new Color(DUST_COLOR) },
+        uColor: { value: new Color(pal.dust) },
         uOpacity: { value: 0 },
       },
     });
     return { geometry: g, material: m };
-  }, [seed, height]);
+  }, [seed, height, pal]);
 
   useFrame(({ camera, gl }, dt) => {
     const prev = simFrame.prev.nodes[index];
@@ -99,7 +101,7 @@ export function DustCloud({ index, position, height, seed }: Props) {
     geometry.setDrawRange(0, Math.round(MAX * k * k));
     const u = material.uniforms;
     (u.uTime as { value: number }).value += Math.min(dt, 0.1) * (simFrame.running ? 1 : 0.3);
-    (u.uOpacity as { value: number }).value = 0.12 + 0.38 * k;
+    (u.uOpacity as { value: number }).value = (0.12 + 0.38 * k) * (pal.dustAdditive ? 1 : 1.5);
     (u.uPxPerUnit as { value: number }).value = camera.zoom * gl.getPixelRatio();
   });
 
