@@ -9,7 +9,7 @@ import { UI_CHART_MS, useThrottledSim } from './hooks';
 import { kpiTiles, type KpiTileView } from './viewModels';
 
 const selectTiles = (s: SimStore) => JSON.stringify(kpiTiles(s.nivora, s.reactive));
-const TREND = { better: 'text-normal', worse: 'text-critical-fg', neutral: 'text-fg' } as const;
+const TREND = { better: 'text-normal-fg', worse: 'text-critical-fg', neutral: 'text-fg' } as const;
 const LABEL: Record<KpiTileView['key'], string> = {
   people: UI.kpi.people,
   planet: UI.kpi.planet,
