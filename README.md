@@ -99,8 +99,17 @@ bila ruas B diblokir, memilih C. `R` dihitung ulang tiap tick dari jumlah pekerj
 (berhenti di tahap pertama yang layak).
 
 **Reaktif vs NiVORA** — engine reaktif berjalan paralel dengan seed dan derau sensor yang sama;
-yang berbeda hanya kebijakan (reaktif: tangani saat residu ≥ 90 % atau terjadwal, rute terpendek).
-Perbedaan KPI murni berasal dari kebijakan penanganan.
+yang berbeda hanya kebijakan (reaktif: tangani saat residu ≥ 90 % atau ronde terjadwal tiap jam,
+rute terpendek). Perbedaan KPI murni berasal dari kebijakan penanganan:
+
+| KPI | Definisi (ilustratif) |
+|---|---|
+| **People** · dosis paparan | pekerja-menit di zona berdebu (PM ≥ 5), ditimbang intensitas PM |
+| **Planet** · recovery rate | porsi residu yang kembali ke reuse / recycle / recovery |
+| **Productivity** · trip tepat guna | porsi trip yang memang diperlukan (bukan ke node normal atau bermuatan rendah) |
+
+Catatan jujur: NiVORA menempuh jarak lebih jauh — safe route lebih panjang daripada rute terpendek.
+Itu harga yang dibayar untuk menurunkan paparan pekerja.
 
 Data pekerja hanya berbasis zona (jumlah per zona, tanpa identitas).
 
