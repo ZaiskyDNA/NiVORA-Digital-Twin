@@ -79,6 +79,7 @@ demo tetap jalan offline.
 | **Bandingkan reaktif** | Menampilkan strip KPI NiVORA vs kebijakan reaktif + pemilih scene |
 | Kamera ▾ | Overview · Fokus Node A · Rute |
 | ⚙ | Slider bobot MWERI & biaya rute (Σ = 1 dijaga otomatis) |
+| ☀ / ☾ · tombol `T` | Tema terang/gelap (tersimpan; default mengikuti sistem, lalu gelap) |
 | **Fokus** · tombol `H` | Sembunyikan semua panel kecuali kartu Rekomendasi |
 | Klik node / pill | Kamera fokus + kartu detail (komposisi MWERI); `Esc` menutup |
 | Simulasikan 30 menit | What-if: fork engine tanpa mengubah kondisi saat ini |
