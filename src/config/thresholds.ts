@@ -25,7 +25,7 @@ export const POLICY = {
   /** Reaktif: tangani hanya bila residu ≥ N %. */
   reactiveLevel: 90,
   /** Reaktif: jadwal tetap — satu node (bergiliran) setiap N menit. */
-  reactiveScheduleMin: 120,
+  reactiveScheduleMin: 60,
 } as const;
 
 /** KPI & simulasi (§9, §13.4). */
