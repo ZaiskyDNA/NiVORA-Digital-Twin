@@ -227,7 +227,8 @@ export default function DebugPage() {
             <tbody>
               {(
                 [
-                  ['Paparan (pekerja-menit, total)', kN.people.exposureTotal, kR.people.exposureTotal, cmp.exposure, 0],
+                  ['Dosis paparan (pekerja-menit × PM)', kN.people.exposureDose, kR.people.exposureDose, cmp.exposureDose, 0],
+                  ['Durasi paparan (pekerja-menit, total)', kN.people.exposureTotal, kR.people.exposureTotal, cmp.exposure, 0],
                   ['Paparan shift ini', kN.people.exposureShift, kR.people.exposureShift, null, 0],
                   ['Rata-rata MWERI', kN.people.avgMweri, kR.people.avgMweri, cmp.avgMweri, 2],
                   [
@@ -239,6 +240,13 @@ export default function DebugPage() {
                   ],
                   ['Trip', kN.productivity.trips, kR.productivity.trips, cmp.trips, 0],
                   ['Trip tak perlu', kN.productivity.unnecessaryTrips, kR.productivity.unnecessaryTrips, cmp.unnecessaryTrips, 0],
+                  [
+                    'Trip tepat guna %',
+                    kN.productivity.usefulTripRate === null ? null : kN.productivity.usefulTripRate * 100,
+                    kR.productivity.usefulTripRate === null ? null : kR.productivity.usefulTripRate * 100,
+                    null,
+                    0,
+                  ],
                   ['Jarak (Σ D)', kN.productivity.distance, kR.productivity.distance, cmp.distance, 0],
                 ] as const
               ).map(([label, a, b, d, digits]) => (
