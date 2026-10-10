@@ -59,7 +59,13 @@ describe('menjalankan langkah berurutan', () => {
     expect(view().compareMode).toBe(true);
     expect(sim().nivora.t).toBeGreaterThan(240);
     const [people] = kpiTiles(sim().nivora, sim().reactive);
-    expect(people?.trend).toBe('better'); // paparan NiVORA < reaktif
+    expect(people?.trend).toBe('better'); // dosis paparan NiVORA < reaktif
+    // Tes ini memadatkan waktu antarlangkah, jadi trip terjadwal reaktif belum tentu terjadi:
+    // cukup pastikan tidak ada KPI yang lebih buruk dan semuanya sudah bernilai.
+    for (const t of kpiTiles(sim().nivora, sim().reactive)) {
+      expect(t.value, t.key).not.toBe('—');
+      expect(t.trend, t.key).not.toBe('worse');
+    }
   });
 
   it('dapat direproduksi: overview selalu memulai state identik, apa pun kondisi sebelumnya', async () => {
