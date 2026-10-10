@@ -6,12 +6,12 @@
 import { Edges } from '@react-three/drei';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useMemo, useRef, type ComponentRef } from 'react';
-import { Color, DoubleSide, type Mesh, type MeshBasicMaterial, type MeshStandardMaterial } from 'three';
+import { BackSide, Color, DoubleSide, type Mesh, type MeshBasicMaterial, type MeshStandardMaterial } from 'three';
 import { NODE_MARKER } from '../config/plant';
 import type { Vec3 } from '../sim/types';
-import { COLOR } from '../styles/tokens';
 import { beaconHeight, POLE, TOWER } from './layout';
-import { BLOOM, PULSE_HZ, STATUS_COLOR } from './palette';
+import { PULSE_HZ } from './palette';
+import { useScenePalette } from './useScenePalette';
 import { useView } from '../store/useView';
 import { simFrame } from './simFrame';
 
@@ -42,10 +42,13 @@ export function NodeMarker({ nodeId, index, position }: Props) {
   const rings = useRef<(Mesh | null)[]>([]);
   const ringMats = useRef<(MeshBasicMaterial | null)[]>([]);
 
-  // Objek kerja dialokasikan sekali per penanda.
+  const pal = useScenePalette();
+  // Objek kerja dialokasikan sekali per penanda (warna awal dari tema saat mount; useFrame
+  // menginterpolasi ke warna tema aktif).
   const work = useMemo(() => {
     const status = simFrame.curr.nodes[index]?.status ?? 'normal';
-    return { color: new Color(STATUS_COLOR[status]), target: new Color(), phase: 0 };
+    return { color: new Color(pal.status[status]), target: new Color(), phase: 0 };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
   const reducedMotion = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
 
@@ -54,7 +57,7 @@ export function NodeMarker({ nodeId, index, position }: Props) {
     if (!node) return;
     const d = Math.min(dt, 0.1);
 
-    work.target.set(STATUS_COLOR[node.status]);
+    work.target.set(pal.status[node.status]);
     work.color.lerp(work.target, 1 - Math.exp(-COLOR_LAMBDA * d));
     const c = work.color;
 
@@ -63,7 +66,7 @@ export function NodeMarker({ nodeId, index, position }: Props) {
       bodyMat.current.emissive.copy(c);
     }
     edges.current?.material.color.copy(c);
-    beaconMat.current?.color.copy(c).multiplyScalar(BLOOM.beacon);
+    beaconMat.current?.color.copy(c).multiplyScalar(pal.bloom.beacon);
     haloMat.current?.color.copy(c);
 
     if (!reducedMotion) work.phase = (work.phase + d * PULSE_HZ[node.status]) % 1;
@@ -130,9 +133,16 @@ export function NodeMarker({ nodeId, index, position }: Props) {
         <sphereGeometry args={[0.5, 16, 12]} />
         <meshBasicMaterial ref={beaconMat} color={initial} toneMapped={false} />
       </mesh>
+      {/* Tema terang (tanpa Bloom): outline pekat — kulit bola terbalik sedikit lebih besar. */}
+      {!pal.bloom.enabled && (
+        <mesh position-y={top} scale={1.18}>
+          <sphereGeometry args={[0.5, 16, 12]} />
+          <meshBasicMaterial color={pal.outline} toneMapped={false} side={BackSide} />
+        </mesh>
+      )}
       <mesh position-y={top} rotation-x={-Math.PI / 2}>
         <ringGeometry args={[0.75, 0.9, 32]} />
-        <meshBasicMaterial color={COLOR.fg} toneMapped={false} side={DoubleSide} transparent opacity={0.85} />
+        <meshBasicMaterial color={pal.beaconRing} toneMapped={false} side={DoubleSide} transparent opacity={0.85} />
       </mesh>
 
       {/* Ring pulsa di lantai */}
@@ -159,7 +169,7 @@ export function NodeMarker({ nodeId, index, position }: Props) {
       ))}
       <mesh position-y={0.025} rotation-x={-Math.PI / 2}>
         <circleGeometry args={[RING_BASE * RING_SPREAD, 48]} />
-        <meshBasicMaterial ref={haloMat} color={initial} transparent opacity={0.07} depthWrite={false} />
+        <meshBasicMaterial ref={haloMat} color={initial} transparent opacity={pal.bloom.enabled ? 0.07 : 0.12} depthWrite={false} />
       </mesh>
     </group>
   );
