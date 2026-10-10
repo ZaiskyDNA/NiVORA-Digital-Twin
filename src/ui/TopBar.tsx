@@ -12,6 +12,7 @@ import { CameraMenu } from './CameraMenu';
 import { formatClock } from './format';
 import { UI_TEXT_MS, useThrottledSim } from './hooks';
 import { ScenarioSwitch } from './ScenarioSwitch';
+import { ThemeToggle } from './ThemeToggle';
 
 const selectT = (s: SimStore) => selectViewed(s).t;
 const btn =
@@ -84,7 +85,7 @@ export function TopBar() {
             {running ? <path d="M4 3h3v10H4zM9 3h3v10H9z" /> : <path d="M5 3v10l8-5z" />}
           </svg>
         </button>
-        <span className={`flex h-8 items-center gap-2 px-1 text-caption ${running ? 'text-normal' : 'text-fg-2'}`}>
+        <span className={`flex h-8 items-center gap-2 px-1 text-caption ${running ? 'text-normal-fg' : 'text-fg-2'}`}>
           <span aria-hidden className={`size-2 rounded-full ${running ? 'bg-normal' : 'bg-fg-3'}`} />
           <span className="text-label">{running ? UI.live.running : UI.live.paused}</span>
           <span className="font-mono text-fg">{formatClock(t)}</span>
@@ -135,6 +136,7 @@ export function TopBar() {
             <circle cx="12.5" cy="12" r="1.5" />
           </svg>
         </button>
+        <ThemeToggle />
         <button
           type="button"
           aria-pressed={focus}
