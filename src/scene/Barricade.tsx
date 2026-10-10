@@ -2,12 +2,13 @@
 import { useMemo } from 'react';
 import { ROUTE_GRAPH } from '../config/plant';
 import { selectViewed, useSim } from '../store/useSim';
-import { COLOR } from '../styles/tokens';
 import { VERTEX_POS } from './layout';
+import { useScenePalette } from './useScenePalette';
 
 const WIDTH = 3;
 
 export function Barricades() {
+  const pal = useScenePalette();
   const ids = useSim((s) =>
     selectViewed(s)
       .graph.edges.filter((e) => e.disabled)
@@ -38,7 +39,7 @@ export function Barricades() {
           {[-WIDTH / 2, WIDTH / 2].map((dx) => (
             <mesh key={dx} position={[dx, 0.6, 0]} castShadow>
               <boxGeometry args={[0.2, 1.2, 0.2]} />
-              <meshStandardMaterial color={COLOR.fg2} />
+              <meshStandardMaterial color={pal.barricade.post} />
             </mesh>
           ))}
           {/* Palang bergaris merah-putih */}
@@ -46,9 +47,9 @@ export function Barricades() {
             <mesh key={i} position={[-WIDTH / 2 + (i + 0.5) * (WIDTH / 6), 1, 0]} castShadow>
               <boxGeometry args={[WIDTH / 6, 0.32, 0.14]} />
               <meshStandardMaterial
-                color={i % 2 === 0 ? COLOR.critical : COLOR.fg}
-                emissive={i % 2 === 0 ? COLOR.critical : '#000000'}
-                emissiveIntensity={0.4}
+                color={i % 2 === 0 ? pal.critical : pal.barricade.light}
+                emissive={pal.critical}
+                emissiveIntensity={i % 2 === 0 ? 0.4 : 0}
               />
             </mesh>
           ))}
