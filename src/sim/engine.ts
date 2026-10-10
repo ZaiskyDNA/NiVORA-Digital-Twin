@@ -340,7 +340,7 @@ function createTask(s: SimState, n: NodeState): void {
     nodeStatusAtDispatch: n.status,
   };
   s.tasks.push(task);
-  recordDispatch(s.metrics, route.totals.D, n.status);
+  recordDispatch(s.metrics, route.totals.D, n.status, n.residueLevel < POLICY.nivoraMinLoadLevel);
   pushEvent(s, { t: s.t, type: 'dispatch', nodeId: n.id, taskId: task.id, detail: route.vertices.join('→') });
 }
 
