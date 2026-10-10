@@ -8,6 +8,7 @@ import { UI_TEXT_MS, useIsMobile, useThrottledSim } from '../ui/hooks';
 import { selectViewed, useSim, type SimStore } from '../store/useSim';
 import { useView } from '../store/useView';
 import { buildRouteLabels, buildSceneLabels, sceneLabelKey, type SceneLabel } from './sceneLabels';
+import { useScenePalette } from './useScenePalette';
 
 const selectKey = (s: SimStore) => sceneLabelKey(selectViewed(s));
 
@@ -16,6 +17,7 @@ export function useSceneLabels(): readonly SceneLabel[] {
   const selected = useView((s) => s.selected);
   const hoveredFacility = useView((s) => s.hoveredFacility);
   const mobile = useIsMobile();
+  const palette = useScenePalette();
   return useMemo(() => {
     void key;
     const s = selectViewed(useSim.getState());
@@ -27,9 +29,10 @@ export function useSceneLabels(): readonly SceneLabel[] {
         destination: s.recommendation?.destination ?? null,
         autoCard: top?.status === 'critical' ? top.id : null,
         mobile,
+        palette,
       }),
       // Ponsel: rute terpilih dijelaskan di bottom sheet, bukan label melayang.
-      ...(mobile ? [] : buildRouteLabels(s)),
+      ...(mobile ? [] : buildRouteLabels(s, palette)),
     ];
-  }, [key, selected, hoveredFacility, mobile]);
+  }, [key, selected, hoveredFacility, mobile, palette]);
 }
