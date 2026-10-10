@@ -5,16 +5,15 @@
  * berbelok tepat di simpang. Tanpa alokasi per frame.
  */
 import { useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import type { Group, Mesh } from 'three';
 import { HAULING } from '../config/plant';
 import type { Task } from '../sim/types';
-import { COLOR } from '../styles/tokens';
 import { VERTEX_POS } from './layout';
-import { BLOOM, hdr, TRUCK } from './palette';
+import { hdr } from './palette';
 import { lerp, simFrame, tickAlpha } from './simFrame';
+import { useScenePalette } from './useScenePalette';
 
-const LIGHT_HDR = hdr(COLOR.safe, BLOOM.truckLight);
 const Y = 0.05;
 
 /** Parameter posisi di sepanjang legs (0 = awal ruas pertama). */
@@ -40,6 +39,9 @@ function findTask(tasks: readonly Task[], id: number): Task | undefined {
 function Truck({ slot }: { slot: number }) {
   const group = useRef<Group>(null);
   const load = useRef<Mesh>(null);
+  const pal = useScenePalette();
+  // Tema gelap: HDR → Bloom. Tema terang: warna pekat tanpa cahaya.
+  const lightColor = useMemo(() => hdr(pal.safe, pal.bloom.truckLight), [pal]);
 
   useFrame(() => {
     const g = group.current;
@@ -75,21 +77,21 @@ function Truck({ slot }: { slot: number }) {
       {/* Bak & sasis (sumbu +Z = arah maju) */}
       <mesh position={[0, 0.75, -0.4]} castShadow>
         <boxGeometry args={[1.7, 1, 2.8]} />
-        <meshStandardMaterial color={TRUCK.body} roughness={0.55} metalness={0.2} />
+        <meshStandardMaterial color={pal.truck.body} roughness={0.55} metalness={0.2} />
       </mesh>
       <mesh ref={load} position={[0, 1.38, -0.4]}>
         <boxGeometry args={[1.45, 0.35, 2.5]} />
-        <meshStandardMaterial color={TRUCK.load} roughness={1} flatShading />
+        <meshStandardMaterial color={pal.truck.load} roughness={1} flatShading />
       </mesh>
       {/* Kabin */}
       <mesh position={[0, 1, 1.45]} castShadow>
         <boxGeometry args={[1.6, 1.5, 0.95]} />
-        <meshStandardMaterial color={TRUCK.cab} roughness={0.4} metalness={0.3} />
+        <meshStandardMaterial color={pal.truck.cab} roughness={0.4} metalness={0.3} />
       </mesh>
       {/* Lampu depan (HDR → Bloom) */}
       <mesh position={[0, 0.7, 1.95]}>
         <boxGeometry args={[1.3, 0.18, 0.05]} />
-        <meshBasicMaterial color={LIGHT_HDR} toneMapped={false} />
+        <meshBasicMaterial color={lightColor} toneMapped={false} />
       </mesh>
     </group>
   );
