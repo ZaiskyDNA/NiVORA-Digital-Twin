@@ -13,6 +13,7 @@ import { CameraPresetBar } from './CameraPresetBar';
 import { formatClock } from './format';
 import { UI_TEXT_MS, useThrottledSim } from './hooks';
 import { ScenarioSwitch } from './ScenarioSwitch';
+import { ThemeToggle } from './ThemeToggle';
 
 const selectT = (s: SimStore) => selectViewed(s).t;
 const iconBtn =
@@ -52,6 +53,7 @@ function Menu({ onClose, id }: { onClose: () => void; id: string }) {
           <CameraPresetBar />
         </div>
       </div>
+      <ThemeToggle wide />
       <button
         type="button"
         onClick={() => {
@@ -140,7 +142,7 @@ export function MobileTopBar() {
           aria-label={running ? UI.live.pause : UI.live.play}
           className="flex h-10 shrink-0 items-center gap-2 rounded-control border border-line-control bg-surface-1 px-2.5"
         >
-          <svg viewBox="0 0 16 16" className={`size-4 ${running ? 'text-normal' : 'text-fg-2'}`} aria-hidden fill="currentColor">
+          <svg viewBox="0 0 16 16" className={`size-4 ${running ? 'text-normal-fg' : 'text-fg-2'}`} aria-hidden fill="currentColor">
             {running ? <path d="M4 3h3v10H4zM9 3h3v10H9z" /> : <path d="M5 3v10l8-5z" />}
           </svg>
           <span className="font-mono text-caption text-fg">{formatClock(t)}</span>
