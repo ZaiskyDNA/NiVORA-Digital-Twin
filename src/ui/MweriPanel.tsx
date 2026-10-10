@@ -130,7 +130,7 @@ export function MweriPanel({ embedded = false }: { embedded?: boolean }) {
 
       {insight && infoOpen && (
         <aside id="insight-body" className="mt-4 rounded-tile bg-warning/10 p-tile">
-          <h3 className="text-label uppercase text-warning">{UI.insight.title}</h3>
+          <h3 className="text-label uppercase text-warning-fg">{UI.insight.title}</h3>
           <p className="mt-1 text-caption text-fg">
             {UI.insight.body(insight.nodeId, insight.residue, insight.mweri, insight.rank, insight.topNodeId)}
           </p>
