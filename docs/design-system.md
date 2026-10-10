@@ -163,6 +163,36 @@ Rasio dihitung dengan rumus luminans relatif WCAG 2.x dari nilai di `tokens.css`
 
 ---
 
+## 3b. Tema gelap & terang
+
+Dua tema, satu himpunan token semantik. Nilai warna hanya ada di `src/styles/tokens.css`, pada blok
+`[data-theme='dark']` dan `[data-theme='light']` (`--nv-*`); `@theme` menunjuk ke sana
+(`--color-surface-0: var(--nv-surface-0)`), sehingga semua utility Tailwind mengikuti tema tanpa
+kelas `dark:`. `src/styles/tokens.ts` mem-parse blok itu untuk scene 3D — tidak ada hex di TypeScript.
+
+| Kelompok | Token | Aturan |
+|---|---|---|
+| Surface | `canvas`, `canvas-glow`, `surface-0/1/2`, `floor` | terang: putih di atas abu-biru sangat muda |
+| Teks | `fg`, `fg-2`, `fg-3`, `on-status` | `fg`/`fg-2` ≥ 4.5:1 di semua surface; `fg-3` hanya surface polos |
+| Border | `line`, `line-strong`, `line-control` | `line-control` ≥ 3:1 |
+| Status (grafis) | `normal`, `warning`, `critical`, `high` | fill, ikon, garis, bar — ≥ 3:1 |
+| Status (teks) | `normal-fg`, `warning-fg`, `critical-fg`, `high-fg` | teks — ≥ 4.5:1, termasuk di atas tint 16% |
+| Keputusan | `safe` (cyan) | hanya safe route & rekomendasi NiVORA, di kedua tema |
+| Scene | `scene-*` | lantai, grid, jalan, bangunan (sisi/atas/tepi), debu, cahaya, bayangan, outline |
+
+- **Kuning di latar terang:** `warning` menjadi amber pekat (`#a86200`), teksnya `#7c4600`. Kuning
+  cerah tema gelap (1.8:1 di atas putih) tidak dipakai.
+- **Teks status selalu varian `-fg`** (lewat `ui/tone.ts`); warna dasar hanya untuk fill/garis.
+- **Scene:** tema gelap memakai Bloom pada warna HDR (beacon, safe route, lampu truk). Tema terang
+  **tanpa Bloom** — cahaya di latar terang hanya memutihkan — diganti warna pekat + outline
+  (`scene-outline`): kulit bola terbalik di beacon, garis gelap di bawah safe route + dash putih
+  penunjuk arah. Tone mapping: ACES (gelap) / Neutral (terang). Debu: aditif (gelap) / normal (terang).
+- **Elevasi terang:** bayangan lembut + cincin warna status, bukan glow neon.
+- **Transisi:** ±200 ms (`--duration-base`) untuk warna DOM, canvas di-fade; tidak ada transisi
+  bila `prefers-reduced-motion`.
+- **Penjaga otomatis:** `contrast.test.ts` (WCAG AA kedua tema), `tokens.test.ts` (kedua tema
+  mendefinisikan token yang sama), `noHardcodedColors.test.ts` (tidak ada warna di luar tokens.css).
+
 ## 4. Komponen
 
 Notasi kelas di bawah memakai utility token. Setiap komponen adalah komponen presentasional: menerima props dari selector store dan tidak menghitung logika simulasi (§12).
