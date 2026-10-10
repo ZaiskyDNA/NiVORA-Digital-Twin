@@ -197,42 +197,54 @@ function deltaTile(
   return { key, value: signed(pct), direction, trend, sr, ...raw };
 }
 
+/**
+ * Kartu KPI berbentuk persentase (0–1): nilai utama = angka NiVORA, baik/buruk dinilai terhadap
+ * baseline reaktif (bukan angka absolut). `sr` menerima persen yang sudah dibulatkan.
+ */
+function rateTile(
+  key: KpiTileView['key'],
+  rate: number | null,
+  baseRate: number | null,
+  empty: string,
+  sr: (pct: number) => string,
+): KpiTileView {
+  const pct = (r: number | null) => (r === null ? '—' : `${Math.round(r * 100)}%`);
+  const raw = { nivora: pct(rate), reactive: pct(baseRate) };
+  if (rate === null) return { key, value: '—', direction: null, trend: 'neutral', sr: empty, ...raw };
+  const same = baseRate === null || Math.round(rate * 100) === Math.round(baseRate * 100);
+  const trend: Trend = same ? 'neutral' : rate > (baseRate ?? 0) ? 'better' : 'worse';
+  return { key, value: pct(rate), direction: null, trend, sr: sr(Math.round(rate * 100)), ...raw };
+}
+
+/**
+ * Tiga KPI 3P, NiVORA vs baseline reaktif (ilustratif):
+ * - People: dosis paparan (pekerja-menit ditimbang PM) — persen perubahan, makin rendah makin baik.
+ * - Planet: porsi residu yang kembali ke jalur sirkular.
+ * - Productivity: porsi trip yang memang diperlukan (bukan trip ke node normal / muatan rendah).
+ */
 export function kpiTiles(nivora: SimState, reactive: SimState): KpiTileView[] {
   const kn = summarize(nivora.metrics);
   const kr = summarize(reactive.metrics);
   const cmp = compareKpi(kn, kr);
-  const pct = (r: number | null) => (r === null ? '—' : `${Math.round(r * 100)}%`);
-  const rate = kn.planet.recoveryRate;
-  const baseRate = kr.planet.recoveryRate;
-  const planetRaw = { nivora: pct(rate), reactive: pct(baseRate) };
-  // Baik/buruk dinilai terhadap baseline reaktif, bukan angka absolut.
-  const planetTrend: Trend =
-    rate === null || baseRate === null || Math.round(rate * 100) === Math.round(baseRate * 100)
-      ? 'neutral'
-      : rate > baseRate
-        ? 'better'
-        : 'worse';
-  const planet: KpiTileView =
-    rate === null
-      ? { key: 'planet', value: '—', direction: null, trend: 'neutral', sr: 'belum ada residu yang ditangani', ...planetRaw }
-      : {
-          key: 'planet',
-          value: `${Math.round(rate * 100)}%`,
-          direction: null,
-          trend: planetTrend,
-          sr: `${Math.round(rate * 100)}% residu kembali ke jalur sirkular`,
-          ...planetRaw,
-        };
   return [
-    deltaTile('people', cmp.exposure, true, {
-      nivora: String(Math.round(kn.people.exposureTotal)),
-      reactive: String(Math.round(kr.people.exposureTotal)),
+    deltaTile('people', cmp.exposureDose, true, {
+      nivora: String(Math.round(kn.people.exposureDose)),
+      reactive: String(Math.round(kr.people.exposureDose)),
     }),
-    planet,
-    deltaTile('productivity', cmp.unnecessaryTrips, true, {
-      nivora: String(kn.productivity.unnecessaryTrips),
-      reactive: String(kr.productivity.unnecessaryTrips),
-    }),
+    rateTile(
+      'planet',
+      kn.planet.recoveryRate,
+      kr.planet.recoveryRate,
+      'belum ada residu yang ditangani',
+      (p) => `${p}% residu kembali ke jalur sirkular`,
+    ),
+    rateTile(
+      'productivity',
+      kn.productivity.usefulTripRate,
+      kr.productivity.usefulTripRate,
+      'belum ada trip',
+      (p) => `${p}% trip memang diperlukan`,
+    ),
   ];
 }
 
