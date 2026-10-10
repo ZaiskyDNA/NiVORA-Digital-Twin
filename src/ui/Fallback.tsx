@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import { UI } from '../config/i18n';
+import { useTheme } from '../store/useTheme';
 
 function CopyUrl({ url }: { url: string }) {
   const [done, setDone] = useState(false);
@@ -24,10 +25,11 @@ function CopyUrl({ url }: { url: string }) {
 export function Fallback({ title, error }: { title: string; error: Error | null }) {
   const noWebgl = error === null || /webgl|context/i.test(error.message);
   const F = UI.fallback;
+  const theme = useTheme((s) => s.theme);
   return (
     <div role="alert" className="relative grid h-full place-items-center p-gutter">
       {noWebgl && (
-        <img src="/scene-fallback.jpg" alt="" aria-hidden className="absolute inset-0 size-full object-cover opacity-45" />
+        <img src={`/scene-fallback-${theme}.jpg`} alt="" aria-hidden className="absolute inset-0 size-full object-cover opacity-45" />
       )}
       <div className="pointer-events-auto relative max-w-xl rounded-panel border border-line-strong bg-surface-0 p-panel shadow-panel">
         <h1 className="text-heading font-semibold text-fg">{title}</h1>
