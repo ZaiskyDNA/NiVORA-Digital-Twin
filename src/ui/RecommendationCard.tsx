@@ -99,7 +99,7 @@ export function RecommendationCard({ embedded = false }: { embedded?: boolean })
             <span className={`font-semibold ${v.reactive || v.throughZone ? 'text-fg' : 'text-safe'}`}>
               {UI.rec.route(v.routeId, v.routeCost)}
             </span>
-            <span className={`block text-caption ${v.throughZone ? 'text-warning' : 'text-fg-2'}`}>{routeText}</span>
+            <span className={`block text-caption ${v.throughZone ? 'text-warning-fg' : 'text-fg-2'}`}>{routeText}</span>
           </dd>
         </div>
       </dl>
