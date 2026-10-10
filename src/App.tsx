@@ -3,6 +3,7 @@ import { DISCLAIMER, UI } from './config/i18n';
 import { stopTour } from './demo/tour';
 import { hasWebGL2 } from './scene/webgl';
 import { startSimClock } from './store/clock';
+import { useTheme } from './store/useTheme';
 import { useTour } from './store/useTour';
 import { useView } from './store/useView';
 import { ErrorBoundary } from './ui/ErrorBoundary';
@@ -44,7 +45,7 @@ export default function App() {
 
   // Jam simulasi untuk halaman utama (halaman debug memasang jamnya sendiri).
   useEffect(() => (isDebug ? undefined : startSimClock()), [isDebug]);
-  // Esc menutup detail node (drawer bobot menangani Esc-nya sendiri); H = mode fokus.
+  // Esc menutup detail node (drawer bobot menangani Esc-nya sendiri); H = mode fokus; T = tema.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const v = useView.getState();
@@ -53,9 +54,9 @@ export default function App() {
         return;
       }
       if (e.key === 'Escape' && !v.weightsOpen) v.selectNode(null);
-      if ((e.key === 'h' || e.key === 'H') && !e.ctrlKey && !e.metaKey && !e.altKey && !isTyping(e.target)) {
-        v.setFocusMode(!v.focusMode);
-      }
+      if (e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
+      if (e.key === 'h' || e.key === 'H') v.setFocusMode(!v.focusMode);
+      if (e.key === 't' || e.key === 'T') useTheme.getState().toggle();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
