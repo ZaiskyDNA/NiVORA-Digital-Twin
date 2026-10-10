@@ -1,29 +1,37 @@
 /**
- * Mirror warna token untuk scene 3D (three.js tidak membaca CSS).
- * Sumber kebenaran tetap src/styles/tokens.css — test `tokens.test.ts` menjaga keduanya sinkron.
+ * Warna token per tema untuk kode yang tidak bisa membaca CSS (three.js, test kontras).
+ * Nilainya DI-PARSE dari blok `[data-theme]` di tokens.css — tidak ada hex di TypeScript, jadi
+ * tokens.css tetap satu-satunya sumber kebenaran.
  */
-export const COLOR = {
-  canvas: '#070c16',
-  canvasGlow: '#13233b',
-  floor: '#1b2c45',
-  surface0: '#0b1424',
-  surface1: '#111e33',
-  surface2: '#172a45',
-  line: '#1d2e48',
-  lineStrong: '#2a4266',
-  fg: '#e8f0fc',
-  fg2: '#a9bad3',
-  normal: '#2bd99f',
-  warning: '#ffb020',
-  critical: '#ff4d5e',
-  high: '#ff7a3d',
-  safe: '#22e1ff',
-  accent: '#6fb6ff',
-  worker: '#f2a33a',
-} as const;
+import css from './tokens.css?raw';
 
-export type ColorToken = keyof typeof COLOR;
+export const THEMES = ['dark', 'light'] as const;
+export type Theme = (typeof THEMES)[number];
+export type Palette = Readonly<Record<string, string>>;
 
-/** camelCase → nama variabel CSS (surface0 → --color-surface-0). */
-export const cssVarOf = (key: ColorToken): string =>
-  `--color-${key.replace(/([A-Z])/g, '-$1').replace(/(\d+)/g, '-$1').toLowerCase()}`;
+/** kebab-case → camelCase (surface-0 → surface0, scene-grid-cell → sceneGridCell). */
+const camel = (name: string): string => name.replace(/-([a-z0-9])/g, (_, c: string) => c.toUpperCase());
+
+/** Ambil semua `--nv-<nama>: #hex;` dari blok `[data-theme='<tema>']`. */
+export function parseTheme(source: string, theme: Theme): Palette {
+  const start = source.indexOf(`[data-theme='${theme}'] {`);
+  if (start < 0) throw new Error(`Blok tema "${theme}" tidak ditemukan di tokens.css`);
+  const block = source.slice(start, source.indexOf('\n}', start));
+  const out: Record<string, string> = {};
+  for (const m of block.matchAll(/--nv-([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) {
+    out[camel(m[1] ?? '')] = (m[2] ?? '').toLowerCase();
+  }
+  return out;
+}
+
+export const PALETTE: Readonly<Record<Theme, Palette>> = {
+  dark: parseTheme(css, 'dark'),
+  light: parseTheme(css, 'light'),
+};
+
+/** Warna token; melempar bila nama salah ketik agar tidak diam-diam menjadi hitam di scene. */
+export function color(theme: Theme, key: string): string {
+  const value = PALETTE[theme][key];
+  if (!value) throw new Error(`Token warna "${key}" tidak ada di tema ${theme}`);
+  return value;
+}
