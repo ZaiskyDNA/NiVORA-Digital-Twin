@@ -7,8 +7,8 @@ import { useMemo, useRef } from 'react';
 import { Object3D, type InstancedMesh } from 'three';
 import { NODE_SEEDS, WORKER_ZONES } from '../config/plant';
 import { createRng, nextFloat } from '../sim/rng';
-import { COLOR } from '../styles/tokens';
 import { simFrame } from './simFrame';
+import { useScenePalette } from './useScenePalette';
 
 const HEIGHT = 2; // tinggi figur (unit dunia)
 const SPEED = 1.1; // unit/detik nyata
@@ -21,6 +21,7 @@ interface Slot {
 }
 
 export function Workers() {
+  const pal = useScenePalette();
   const mesh = useRef<InstancedMesh>(null);
 
   const sim = useMemo(() => {
@@ -87,7 +88,7 @@ export function Workers() {
   return (
     <instancedMesh ref={mesh} args={[undefined, undefined, sim.n]} castShadow frustumCulled={false}>
       <capsuleGeometry args={[0.38, HEIGHT - 0.76, 3, 8]} />
-      <meshStandardMaterial color={COLOR.worker} emissive={COLOR.worker} emissiveIntensity={0.25} roughness={0.6} />
+      <meshStandardMaterial color={pal.worker} emissive={pal.worker} emissiveIntensity={pal.bloom.enabled ? 0.25 : 0.08} roughness={0.6} />
     </instancedMesh>
   );
 }
