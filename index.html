@@ -1,11 +1,19 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#070c16" />
     <meta name="description" content="NiVORA Digital Twin — visualisasi konsep Predict · Protect · Circulate untuk pengelolaan residu nikel." />
+    <!-- Tema sebelum render pertama (tanpa kedip): tersimpan > preferensi sistem > gelap. Selaras dengan src/store/useTheme.ts. -->
+    <script>
+      try {
+        var t = localStorage.getItem('nivora-theme');
+        if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
     <title>NiVORA Digital Twin</title>
   </head>
   <body>
