@@ -3,7 +3,6 @@
  * Fase 4: terhubung ke store lewat `simFrame` (animasi via ref) + selector string untuk
  * perubahan struktural (label, rute, barikade).
  */
-import { ContactShadows } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { NODE_SEEDS, WORKER_ZONES } from '../config/plant';
 import { Barricades } from './Barricade';
@@ -16,6 +15,7 @@ import { Floor } from './Floor';
 import { HaulTrucks } from './HaulTruck';
 import { LabelLayer } from './LabelLayer';
 import { LabelLeaders } from './LabelLeaders';
+import { Lighting } from './Lighting';
 import { beaconHeight, CAMERA_PRESETS_POSE, cameraPosition } from './layout';
 import { NodeCardLayer } from './NodeCardLayer';
 import { NodeMarker } from './NodeMarker';
@@ -26,9 +26,6 @@ import { SimSync } from './SimSync';
 import { StaticPlant } from './StaticPlant';
 import { WorkerZone } from './WorkerZone';
 import { Workers } from './Workers';
-
-/** Konstanta modul — props baru di tiap render membuat ContactShadows merender ulang scene. */
-const SHADOW_SCALE: [number, number] = [84, 60];
 
 /**
  * PlantScene sendiri tidak berlangganan store sama sekali: animasi lewat simFrame (ref), perubahan
@@ -46,19 +43,7 @@ export default function PlantScene() {
         aria-label="Scene 3D pabrik nikel"
       >
         <SimSync />
-        <hemisphereLight args={['#9fc4ff', '#0b1424', 0.55]} />
-        <ambientLight intensity={0.25} />
-        <directionalLight
-          position={[30, 45, 18]}
-          intensity={1.5}
-          castShadow
-          shadow-mapSize={[2048, 2048]}
-          shadow-camera-left={-50}
-          shadow-camera-right={50}
-          shadow-camera-top={40}
-          shadow-camera-bottom={-40}
-          shadow-bias={-0.0005}
-        />
+        <Lighting />
 
         <Floor />
         <Roads />
@@ -80,7 +65,6 @@ export default function PlantScene() {
         <HaulTrucks />
         <LabelLeaders />
 
-        <ContactShadows position-y={0.02} scale={SHADOW_SCALE} opacity={0.35} blur={2.4} far={14} frames={1} />
         <CameraRig />
         <Effects />
         {import.meta.env.DEV && <PerfProbe />}
