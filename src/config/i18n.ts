@@ -239,10 +239,10 @@ export const UI = {
   kpi: {
     title: 'NiVORA vs reaktif (sesi ini)',
     scene: 'Scene',
-    people: 'Paparan pekerja',
+    people: 'Dosis paparan',
     planet: 'Recovery rate',
-    productivity: 'Trip tak perlu',
-    unitExposure: 'pekerja-menit',
+    productivity: 'Trip tepat guna',
+    unitExposure: 'pekerja-menit × PM',
   },
   fallback: {
     sceneTitle: 'Scene 3D tidak dapat ditampilkan',
@@ -299,8 +299,8 @@ export const UI = {
       },
       kpi: {
         title: 'Reaktif vs NiVORA',
-        text: (people: string, planet: string) =>
-          `Dibanding kebijakan reaktif pada input sensor yang sama: paparan pekerja ${people}, recovery rate ${planet}. Nilai ilustratif.`,
+        text: (people: string, planet: string, productivity: string) =>
+          `Dibanding kebijakan reaktif pada input sensor yang sama: dosis paparan pekerja ${people}, recovery rate ${planet}, trip tepat guna ${productivity}. Nilai ilustratif.`,
       },
     },
   },
