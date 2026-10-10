@@ -218,6 +218,10 @@ export const UI = {
     exitPresent: 'Keluar presentasi',
     weights: 'Atur bobot',
   },
+  theme: {
+    light: 'Tema terang',
+    hint: 'Ganti tema gelap/terang (T)',
+  },
   mobile: {
     tour: 'Tur 60 dtk',
     exitTour: 'Keluar',
