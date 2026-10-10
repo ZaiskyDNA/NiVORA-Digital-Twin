@@ -3,10 +3,21 @@ import { memo } from 'react';
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { UI } from '../config/i18n';
 import { DIGITAL_TWIN } from '../config/thresholds';
-import { COLOR } from '../styles/tokens';
 import type { ChartPoint } from './viewModels';
 
-const AXIS = { fill: COLOR.fg2, fontSize: 12, fontFamily: 'var(--font-mono)' };
+/**
+ * Warna lewat variabel CSS token: SVG mengikuti tema secara otomatis tanpa re-render grafik.
+ * Garis & teks merah memakai `critical-fg` (teks ≥4.5:1; garis ≥3:1 di kedua tema).
+ */
+const C = {
+  axis: 'var(--color-fg-2)',
+  grid: 'var(--color-line)',
+  axisLine: 'var(--color-line-strong)',
+  critical: 'var(--color-critical-fg)',
+  history: 'var(--color-accent)',
+  sim: 'var(--color-fg)',
+};
+const AXIS = { fill: C.axis, fontSize: 12, fontFamily: 'var(--font-mono)' };
 
 /**
  * Di-memo: induknya (MweriPanel) re-render tiap tick untuk ranking, sedangkan data grafik hanya
@@ -17,28 +28,28 @@ export const MweriChart = memo(function MweriChart({ points }: { points: readonl
     <div className="h-36" role="img" aria-label="Grafik MWERI terhadap waktu dengan proyeksi Digital Twin">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={points as ChartPoint[]} margin={{ top: 14, right: 6, bottom: 0, left: -24 }}>
-          <CartesianGrid stroke={COLOR.line} vertical={false} />
+          <CartesianGrid stroke={C.grid} vertical={false} />
           <XAxis
             dataKey="t"
             type="number"
             domain={['dataMin', 'dataMax']}
             tick={AXIS}
             tickLine={false}
-            axisLine={{ stroke: COLOR.lineStrong }}
+            axisLine={{ stroke: C.axisLine }}
             tickFormatter={(v: number) => `${Math.round(v)}m`}
             tickCount={4}
           />
           <YAxis domain={[0, 10]} ticks={[0, 4, 8]} tick={AXIS} tickLine={false} axisLine={false} />
           <ReferenceLine
             y={DIGITAL_TWIN.mweriCritical}
-            stroke={COLOR.critical}
-            strokeOpacity={0.6}
+            stroke={C.critical}
+            strokeOpacity={0.7}
             strokeDasharray="4 4"
-            label={{ value: UI.mweri.threshold, position: 'insideTopLeft', fill: COLOR.critical, fontSize: 12, dy: -12 }}
+            label={{ value: UI.mweri.threshold, position: 'insideTopLeft', fill: C.critical, fontSize: 12, dy: -12 }}
           />
           <Line
             dataKey="mweri"
-            stroke={COLOR.accent}
+            stroke={C.history}
             strokeWidth={2}
             dot={false}
             isAnimationActive={false}
@@ -46,7 +57,7 @@ export const MweriChart = memo(function MweriChart({ points }: { points: readonl
           />
           <Line
             dataKey="sim"
-            stroke={COLOR.fg}
+            stroke={C.sim}
             strokeWidth={2}
             strokeDasharray="1 4"
             strokeLinecap="round"
@@ -56,7 +67,7 @@ export const MweriChart = memo(function MweriChart({ points }: { points: readonl
           />
           <Line
             dataKey="proj"
-            stroke={COLOR.critical}
+            stroke={C.critical}
             strokeWidth={2}
             strokeDasharray="5 4"
             dot={false}
