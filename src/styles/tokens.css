@@ -1,6 +1,7 @@
 /*
  * NiVORA design tokens — sumber kebenaran tunggal.
- * Spesifikasi & alasan: docs/design-system.md. Kontras WCAG AA sudah diverifikasi (lihat §3 dokumen itu).
+ * Spesifikasi & alasan: docs/design-system.md. Kontras WCAG AA kedua tema dijaga test
+ * (src/styles/__tests__/contrast.test.ts).
  *
  * Tailwind v4: semua yang ada di @theme otomatis menjadi utility
  * (mis. --color-surface-1 → bg-surface-1, --radius-panel → rounded-panel).
@@ -13,37 +14,81 @@
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  /* ── Kanvas & permukaan ─────────────────────────────────────────── */
-  --color-canvas: #070c16; /* latar terdalam, tepi radial */
-  --color-canvas-glow: #13233b; /* pusat radial di belakang scene */
-  --color-floor: #1b2c45; /* lantai pabrik 3D */
-  --color-surface-0: #0b1424; /* Panel, NodeCard */
-  --color-surface-1: #111e33; /* KPI tile, chip, baris tabel */
-  --color-surface-2: #172a45; /* hover, baris terpilih */
-
-  /* ── Garis ──────────────────────────────────────────────────────── */
-  --color-line: #1d2e48; /* pemisah dekoratif (tidak wajib 3:1) */
-  --color-line-strong: #2a4266; /* tepi panel */
-  --color-line-control: #5577a2; /* batas kontrol interaktif — ≥3:1 di semua surface */
-
-  /* ── Teks ───────────────────────────────────────────────────────── */
-  --color-fg: #e8f0fc; /* utama — ≥12.6:1 */
-  --color-fg-2: #a9bad3; /* sekunder, label di wadah ber-tint — ≥7.3:1 */
-  --color-fg-3: #8597b3; /* muted, HANYA di surface polos — ≥4.8:1 */
-  --color-fg-disabled: #56677f; /* hanya kontrol non-aktif (dikecualikan WCAG) */
-  --color-on-status: #06101c; /* teks di atas fill status solid */
-
-  /* ── Status (fill, ikon, glow, teks) ────────────────────────────── */
-  --color-normal: #2bd99f;
-  --color-warning: #ffb020;
-  --color-critical: #ff4d5e; /* fill/glow; untuk teks pakai critical-fg */
-  --color-critical-fg: #ff7682; /* teks merah — ≥4.7:1 termasuk di tint */
-  --color-high: #ff7a3d; /* kelas MWERI "Tinggi" (6–8) */
-
-  /* ── Peran khusus ───────────────────────────────────────────────── */
-  --color-safe: #22e1ff; /* DICADANGKAN: safe route & rekomendasi NiVORA */
-  --color-accent: #6fb6ff; /* interaktif, judul panel, fokus */
-  --color-worker: #f2a33a; /* figur & zona pekerja (3D + legenda) */
+  /* Warna: nilai per tema ada di blok [data-theme] di bawah (--nv-*). */
+  /* ── Kanvas & permukaan ── */
+  --color-canvas: var(--nv-canvas); /* latar terdalam, tepi radial */
+  --color-canvas-glow: var(--nv-canvas-glow); /* pusat radial di belakang scene */
+  --color-floor: var(--nv-floor); /* lantai pabrik 3D */
+  --color-surface-0: var(--nv-surface-0); /* Panel, NodeCard */
+  --color-surface-1: var(--nv-surface-1); /* KPI tile, chip, baris tabel */
+  --color-surface-2: var(--nv-surface-2); /* hover, baris terpilih */
+  /* ── Garis (border) ── */
+  --color-line: var(--nv-line); /* pemisah dekoratif (tidak wajib 3:1) */
+  --color-line-strong: var(--nv-line-strong); /* tepi panel */
+  --color-line-control: var(--nv-line-control); /* batas kontrol interaktif — ≥3:1 di semua surface */
+  /* ── Teks ── */
+  --color-fg: var(--nv-fg); /* utama */
+  --color-fg-2: var(--nv-fg-2); /* sekunder, label di wadah ber-tint */
+  --color-fg-3: var(--nv-fg-3); /* muted, HANYA di surface polos */
+  --color-fg-disabled: var(--nv-fg-disabled); /* hanya kontrol non-aktif (dikecualikan WCAG) */
+  --color-on-status: var(--nv-on-status); /* teks di atas fill status solid */
+  /* ── Status: fill/ikon/garis (≥3:1) dan -fg untuk teks (≥4.5:1, termasuk di atas tint) ── */
+  --color-normal: var(--nv-normal);
+  --color-normal-fg: var(--nv-normal-fg);
+  --color-warning: var(--nv-warning); /* kuning diganti amber pekat di tema terang */
+  --color-warning-fg: var(--nv-warning-fg);
+  --color-critical: var(--nv-critical);
+  --color-critical-fg: var(--nv-critical-fg);
+  --color-high: var(--nv-high); /* kelas MWERI "Tinggi" (6–8) */
+  --color-high-fg: var(--nv-high-fg);
+  /* ── Peran khusus ── */
+  --color-safe: var(--nv-safe); /* DICADANGKAN: keputusan NiVORA (safe route & rekomendasi) */
+  --color-accent: var(--nv-accent); /* interaktif, judul panel, fokus */
+  --color-worker: var(--nv-worker); /* figur & zona pekerja (3D + legenda) */
+  /* ── Scene 3D: lantai, jalan, conveyor ── */
+  --color-scene-grid-cell: var(--nv-scene-grid-cell); /* grid halus (sudah dicampur ke lantai) */
+  --color-scene-grid-section: var(--nv-scene-grid-section); /* grid utama */
+  --color-scene-floor-edge: var(--nv-scene-floor-edge);
+  --color-scene-road: var(--nv-scene-road);
+  --color-scene-conveyor-belt: var(--nv-scene-conveyor-belt);
+  --color-scene-conveyor-frame: var(--nv-scene-conveyor-frame);
+  /* ── Scene 3D: bangunan (sisi, muka atas, tepi) — tema terang: abu-biru, identitas di muka atas & tepi ── */
+  --color-scene-smelter-body: var(--nv-scene-smelter-body);
+  --color-scene-smelter-top: var(--nv-scene-smelter-top);
+  --color-scene-smelter-edge: var(--nv-scene-smelter-edge);
+  --color-scene-stack-body: var(--nv-scene-stack-body);
+  --color-scene-stack-top: var(--nv-scene-stack-top);
+  --color-scene-crusher-body: var(--nv-scene-crusher-body);
+  --color-scene-crusher-top: var(--nv-scene-crusher-top);
+  --color-scene-crusher-edge: var(--nv-scene-crusher-edge);
+  --color-scene-reprocessing-body: var(--nv-scene-reprocessing-body);
+  --color-scene-reprocessing-top: var(--nv-scene-reprocessing-top);
+  --color-scene-reprocessing-edge: var(--nv-scene-reprocessing-edge);
+  --color-scene-recovery-body: var(--nv-scene-recovery-body);
+  --color-scene-recovery-top: var(--nv-scene-recovery-top);
+  --color-scene-recovery-edge: var(--nv-scene-recovery-edge);
+  --color-scene-treatment-body: var(--nv-scene-treatment-body);
+  --color-scene-treatment-top: var(--nv-scene-treatment-top);
+  --color-scene-treatment-edge: var(--nv-scene-treatment-edge);
+  --color-scene-disposal-body: var(--nv-scene-disposal-body);
+  --color-scene-disposal-top: var(--nv-scene-disposal-top);
+  --color-scene-disposal-edge: var(--nv-scene-disposal-edge);
+  --color-scene-pit: var(--nv-scene-pit); /* dasar lubang disposal */
+  --color-scene-stockpile-body: var(--nv-scene-stockpile-body);
+  --color-scene-stockpile-top: var(--nv-scene-stockpile-top);
+  --color-scene-stockpile-edge: var(--nv-scene-stockpile-edge);
+  /* ── Scene 3D: objek bergerak, cahaya, bayangan ── */
+  --color-scene-dust: var(--nv-scene-dust);
+  --color-scene-ore: var(--nv-scene-ore);
+  --color-scene-truck-body: var(--nv-scene-truck-body);
+  --color-scene-truck-cab: var(--nv-scene-truck-cab);
+  --color-scene-truck-load: var(--nv-scene-truck-load);
+  --color-scene-hemi-sky: var(--nv-scene-hemi-sky);
+  --color-scene-hemi-ground: var(--nv-scene-hemi-ground);
+  --color-scene-sun: var(--nv-scene-sun);
+  --color-scene-shadow: var(--nv-scene-shadow); /* bayangan kontak */
+  --color-scene-outline: var(--nv-scene-outline); /* outline beacon & safe route (tema terang) */
+  --color-scene-beacon-ring: var(--nv-scene-beacon-ring);
   /* Tint status = bg-<status>/16 (hanya latar yang transparan, teks tetap pekat). */
 
   /* ── Tipografi ──────────────────────────────────────────────────── */
@@ -89,13 +134,13 @@
   --radius-card: 0.75rem; /* 12 — NodeCard */
   --radius-panel: 1rem; /* 16 — Panel */
 
-  /* ── Elevasi: di tema gelap, kedalaman = highlight atas + bayangan pekat ── */
-  --shadow-panel: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 16px 40px -16px rgb(0 0 0 / 0.7);
-  --shadow-raised: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 6px 16px -8px rgb(0 0 0 / 0.6);
-  --shadow-glow-normal: 0 0 0 1px rgb(43 217 159 / 0.55), 0 0 28px -8px rgb(43 217 159 / 0.45);
-  --shadow-glow-warning: 0 0 0 1px rgb(255 176 32 / 0.6), 0 0 28px -8px rgb(255 176 32 / 0.45);
-  --shadow-glow-critical: 0 0 0 1px rgb(255 77 94 / 0.65), 0 0 32px -6px rgb(255 77 94 / 0.55);
-  --shadow-glow-safe: 0 0 0 1px rgb(34 225 255 / 0.5), 0 0 28px -8px rgb(34 225 255 / 0.5);
+  /* ── Elevasi: nilai per tema (gelap = highlight atas + bayangan pekat; terang = bayangan lembut) ── */
+  --shadow-panel: var(--nv-shadow-panel);
+  --shadow-raised: var(--nv-shadow-raised);
+  --shadow-glow-normal: var(--nv-shadow-glow-normal);
+  --shadow-glow-warning: var(--nv-shadow-glow-warning);
+  --shadow-glow-critical: var(--nv-shadow-glow-critical);
+  --shadow-glow-safe: var(--nv-shadow-glow-safe);
 
   /* ── Gerak ──────────────────────────────────────────────────────── */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -114,6 +159,199 @@
       transform: scale(0.8);
     }
   }
+}
+
+/*
+ * Nilai warna per tema — SATU-SATUNYA tempat hex warna di proyek. src/styles/tokens.ts mem-parse
+ * blok ini untuk scene 3D & test kontras, jadi tidak ada salinan di TypeScript.
+ * Atribut data-theme dipasang di <html> (index.html + store/useTheme.ts). Default: dark.
+ */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Kanvas & permukaan */
+  --nv-canvas: #070c16;
+  --nv-canvas-glow: #13233b;
+  --nv-floor: #1b2c45;
+  --nv-surface-0: #0b1424;
+  --nv-surface-1: #111e33;
+  --nv-surface-2: #172a45;
+
+  /* Garis (border) */
+  --nv-line: #1d2e48;
+  --nv-line-strong: #2a4266;
+  --nv-line-control: #5577a2;
+
+  /* Teks */
+  --nv-fg: #e8f0fc;
+  --nv-fg-2: #a9bad3;
+  --nv-fg-3: #8597b3;
+  --nv-fg-disabled: #56677f;
+  --nv-on-status: #06101c;
+
+  /* Status: fill/ikon/garis (≥3:1) dan -fg untuk teks (≥4.5:1, termasuk di atas tint) */
+  --nv-normal: #2bd99f;
+  --nv-normal-fg: #2bd99f;
+  --nv-warning: #ffb020;
+  --nv-warning-fg: #ffb020;
+  --nv-critical: #ff4d5e;
+  --nv-critical-fg: #ff7682;
+  --nv-high: #ff7a3d;
+  --nv-high-fg: #ff8a55;
+
+  /* Peran khusus */
+  --nv-safe: #22e1ff;
+  --nv-accent: #6fb6ff;
+  --nv-worker: #f2a33a;
+
+  /* Scene 3D: lantai, jalan, conveyor */
+  --nv-scene-grid-cell: #1c394f;
+  --nv-scene-grid-section: #1d4559;
+  --nv-scene-floor-edge: #2f5b86;
+  --nv-scene-road: #14223a;
+  --nv-scene-conveyor-belt: #9db6d8;
+  --nv-scene-conveyor-frame: #5c7396;
+
+  /* Scene 3D: bangunan (sisi, muka atas, tepi) — tema terang: abu-biru, identitas di muka atas & tepi */
+  --nv-scene-smelter-body: #2c3d5c;
+  --nv-scene-smelter-top: #3b5379;
+  --nv-scene-smelter-edge: #6fb6ff;
+  --nv-scene-stack-body: #1d2840;
+  --nv-scene-stack-top: #2a3858;
+  --nv-scene-crusher-body: #2c3a52;
+  --nv-scene-crusher-top: #3e5170;
+  --nv-scene-crusher-edge: #6fb6ff;
+  --nv-scene-reprocessing-body: #156b55;
+  --nv-scene-reprocessing-top: #1f9d79;
+  --nv-scene-reprocessing-edge: #2bd99f;
+  --nv-scene-recovery-body: #16707f;
+  --nv-scene-recovery-top: #1fa3b5;
+  --nv-scene-recovery-edge: #22e1ff;
+  --nv-scene-treatment-body: #4b3a7c;
+  --nv-scene-treatment-top: #6a55a8;
+  --nv-scene-treatment-edge: #b39cff;
+  --nv-scene-disposal-body: #3a2a22;
+  --nv-scene-disposal-top: #4a362b;
+  --nv-scene-disposal-edge: #c28a6a;
+  --nv-scene-pit: #1f1611;
+  --nv-scene-stockpile-body: #6e5640;
+  --nv-scene-stockpile-top: #8a6c50;
+  --nv-scene-stockpile-edge: #d1a77d;
+
+  /* Scene 3D: objek bergerak, cahaya, bayangan */
+  --nv-scene-dust: #e6c9a8;
+  --nv-scene-ore: #8a7560;
+  --nv-scene-truck-body: #c9d6e8;
+  --nv-scene-truck-cab: #6fb6ff;
+  --nv-scene-truck-load: #7a5a3f;
+  --nv-scene-hemi-sky: #9fc4ff;
+  --nv-scene-hemi-ground: #0b1424;
+  --nv-scene-sun: #ffffff;
+  --nv-scene-shadow: #000000;
+  --nv-scene-outline: #06101c;
+  --nv-scene-beacon-ring: #e8f0fc;
+
+  /* Elevasi */
+  --nv-shadow-panel: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 16px 40px -16px rgb(0 0 0 / 0.7);
+  --nv-shadow-raised: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 6px 16px -8px rgb(0 0 0 / 0.6);
+  --nv-shadow-glow-normal: 0 0 0 1px rgb(43 217 159 / 0.55), 0 0 28px -8px rgb(43 217 159 / 0.45);
+  --nv-shadow-glow-warning: 0 0 0 1px rgb(255 176 32 / 0.6), 0 0 28px -8px rgb(255 176 32 / 0.45);
+  --nv-shadow-glow-critical: 0 0 0 1px rgb(255 77 94 / 0.65), 0 0 32px -6px rgb(255 77 94 / 0.55);
+  --nv-shadow-glow-safe: 0 0 0 1px rgb(34 225 255 / 0.5), 0 0 28px -8px rgb(34 225 255 / 0.5);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Kanvas & permukaan */
+  --nv-canvas: #e6ebf2;
+  --nv-canvas-glow: #f8fafc;
+  --nv-floor: #d3dbe6;
+  --nv-surface-0: #ffffff;
+  --nv-surface-1: #f1f4f9;
+  --nv-surface-2: #e1e8f1;
+
+  /* Garis (border) */
+  --nv-line: #dde4ed;
+  --nv-line-strong: #b7c4d6;
+  --nv-line-control: #66799a;
+
+  /* Teks */
+  --nv-fg: #0c1829;
+  --nv-fg-2: #37485f;
+  --nv-fg-3: #52627b;
+  --nv-fg-disabled: #98a5b8;
+  --nv-on-status: #ffffff;
+
+  /* Status: fill/ikon/garis (≥3:1) dan -fg untuk teks (≥4.5:1, termasuk di atas tint) */
+  --nv-normal: #0a7f5a;
+  --nv-normal-fg: #065f43;
+  --nv-warning: #a86200;
+  --nv-warning-fg: #7c4600;
+  --nv-critical: #d42a41;
+  --nv-critical-fg: #a81a2f;
+  --nv-high: #c24a0a;
+  --nv-high-fg: #8f3404;
+
+  /* Peran khusus */
+  --nv-safe: #006e87;
+  --nv-accent: #1d5fc4;
+  --nv-worker: #a85f0e;
+
+  /* Scene 3D: lantai, jalan, conveyor */
+  --nv-scene-grid-cell: #c5cfdc;
+  --nv-scene-grid-section: #b0bdce;
+  --nv-scene-floor-edge: #8498b3;
+  --nv-scene-road: #bac5d3;
+  --nv-scene-conveyor-belt: #55667f;
+  --nv-scene-conveyor-frame: #8292a9;
+
+  /* Scene 3D: bangunan (sisi, muka atas, tepi) — tema terang: abu-biru, identitas di muka atas & tepi */
+  --nv-scene-smelter-body: #8ea1bb;
+  --nv-scene-smelter-top: #a9b9cf;
+  --nv-scene-smelter-edge: #2f5d99;
+  --nv-scene-stack-body: #7a8da8;
+  --nv-scene-stack-top: #92a4bc;
+  --nv-scene-crusher-body: #96a7be;
+  --nv-scene-crusher-top: #b0bed1;
+  --nv-scene-crusher-edge: #2f5d99;
+  --nv-scene-reprocessing-body: #7fae9f;
+  --nv-scene-reprocessing-top: #8fcab4;
+  --nv-scene-reprocessing-edge: #065f43;
+  --nv-scene-recovery-body: #7fa9b5;
+  --nv-scene-recovery-top: #93c4cf;
+  --nv-scene-recovery-edge: #0b6a7d;
+  --nv-scene-treatment-body: #9b93bf;
+  --nv-scene-treatment-top: #b3aad8;
+  --nv-scene-treatment-edge: #5a3fb0;
+  --nv-scene-disposal-body: #a39184;
+  --nv-scene-disposal-top: #b8a698;
+  --nv-scene-disposal-edge: #7a4a2c;
+  --nv-scene-pit: #6d5c51;
+  --nv-scene-stockpile-body: #b0977a;
+  --nv-scene-stockpile-top: #c8ae90;
+  --nv-scene-stockpile-edge: #7d5426;
+
+  /* Scene 3D: objek bergerak, cahaya, bayangan */
+  --nv-scene-dust: #8a6a48;
+  --nv-scene-ore: #6a5644;
+  --nv-scene-truck-body: #f4f6f9;
+  --nv-scene-truck-cab: #1d5fc4;
+  --nv-scene-truck-load: #7a5a3f;
+  --nv-scene-hemi-sky: #ffffff;
+  --nv-scene-hemi-ground: #c3ccd9;
+  --nv-scene-sun: #fff8ee;
+  --nv-scene-shadow: #42526b;
+  --nv-scene-outline: #0c1829;
+  --nv-scene-beacon-ring: #ffffff;
+
+  /* Elevasi: tanpa glow neon — cincin warna status + bayangan lembut */
+  --nv-shadow-panel: 0 1px 2px rgb(12 24 41 / 0.06), 0 14px 32px -14px rgb(12 24 41 / 0.22);
+  --nv-shadow-raised: 0 1px 2px rgb(12 24 41 / 0.08), 0 6px 14px -8px rgb(12 24 41 / 0.2);
+  --nv-shadow-glow-normal: 0 0 0 1.5px rgb(10 127 90 / 0.75), 0 8px 20px -10px rgb(12 24 41 / 0.25);
+  --nv-shadow-glow-warning: 0 0 0 1.5px rgb(168 98 0 / 0.8), 0 8px 20px -10px rgb(12 24 41 / 0.25);
+  --nv-shadow-glow-critical: 0 0 0 1.5px rgb(212 42 65 / 0.85), 0 8px 22px -10px rgb(212 42 65 / 0.3);
+  --nv-shadow-glow-safe: 0 0 0 1.5px rgb(0 110 135 / 0.75), 0 8px 20px -10px rgb(12 24 41 / 0.25);
 }
 
 /* Token non-utility (dibaca langsung oleh CSS & scene 3D). */
