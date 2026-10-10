@@ -13,6 +13,8 @@ describe('KPI 3P (§9)', () => {
     recordTick(m, 2, [n(5, 3, 6), n(2, 0, 0)], OPTS);
     const k = summarize(m);
     expect(k.people.exposureShift).toBe(7);
+    // Dosis menimbang intensitas: 4 pekerja × 0.6 + 3 pekerja × 0.5; zona di bawah ambang tidak dihitung.
+    expectNear(k.people.exposureDose, 4 * 0.6 + 3 * 0.5);
     expectNear(k.people.avgMweri, (5 + 3) / 2);
   });
 
@@ -28,6 +30,7 @@ describe('KPI 3P (§9)', () => {
     const m = createMetrics();
     recordDispatch(m, 4, 'critical');
     recordDispatch(m, 2, 'normal');
+    recordDispatch(m, 3, 'warning', true); // muatan rendah → juga tidak perlu
     recordArrival(m, 40, 'reuse');
     recordArrival(m, 30, 'recovery');
     recordArrival(m, 20, 'treatment');
@@ -35,13 +38,16 @@ describe('KPI 3P (§9)', () => {
     const k = summarize(m);
     expectNear(k.planet.recoveryRate, 0.7);
     expectNear(k.planet.wasteToDisposal, 0.1);
-    expect(k.productivity).toEqual({ trips: 2, unnecessaryTrips: 1, distance: 6 });
+    expect(k.productivity).toMatchObject({ trips: 3, unnecessaryTrips: 2, distance: 9 });
+    expectNear(k.productivity.usefulTripRate, 1 / 3);
   });
 
   it('KPI kosong → null, bukan NaN', () => {
     const k = summarize(createMetrics());
     expect(k.people.avgMweri).toBeNull();
     expect(k.planet.recoveryRate).toBeNull();
+    expect(k.productivity.usefulTripRate).toBeNull();
+    expect(k.people.exposureDose).toBe(0);
   });
 
   it('persen perubahan terhadap baseline reaktif', () => {
