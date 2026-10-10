@@ -13,8 +13,8 @@ import { selectViewed, SPEEDS, useSim } from '../store/useSim';
 import { fmt, formatClock, formatDelta } from '../ui/format';
 
 const STATUS_TEXT: Record<Status, string> = {
-  normal: 'text-normal',
-  warning: 'text-warning',
+  normal: 'text-normal-fg',
+  warning: 'text-warning-fg',
   critical: 'text-critical-fg',
 };
 
