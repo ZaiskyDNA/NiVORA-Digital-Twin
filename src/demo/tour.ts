@@ -128,8 +128,8 @@ export const TOUR: readonly TourStep[] = [
     title: T.kpi.title,
     durationMs: 8000,
     caption: () => {
-      const [people, planet] = kpiTiles(sim().nivora, sim().reactive);
-      return T.kpi.text(people?.value ?? '—', planet?.value ?? '—');
+      const [people, planet, productivity] = kpiTiles(sim().nivora, sim().reactive);
+      return T.kpi.text(people?.value ?? '—', planet?.value ?? '—', productivity?.value ?? '—');
     },
     enter: async () => {
       // Ringkasan bermakna butuh satu sesi panjang: majukan ±4 jam simulasi di kedua engine.
