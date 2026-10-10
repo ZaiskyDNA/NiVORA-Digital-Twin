@@ -232,7 +232,8 @@ describe('kpiTiles — nilai berdampingan', () => {
     const [people, planet, productivity] = kpiTiles(n, r);
     expect(Number(people!.nivora)).toBeLessThan(Number(people!.reactive));
     expect(planet!.nivora).toMatch(/%$/);
-    expect(productivity!.reactive).toMatch(/^\d+$/);
+    expect(productivity!.nivora).toMatch(/%$/);
+    expect(productivity!.reactive).toMatch(/%$/);
   });
 });
 
