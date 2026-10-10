@@ -350,7 +350,7 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 - Engine mulai dari **baseline awal shift** (`NODE_SEEDS`, belum ada node critical). Nilai Lampiran 4 disimpan sebagai `ESSAY_SNAPSHOT` (acuan & test); kondisi serupa muncul saat Production Surge (Node A critical ±10 menit).
 - `step()` murni (structuredClone). Ambang & parameter kebijakan di `config/thresholds.ts` (`POLICY`, `SIM`); dinamika sensor, truk, dan zona di `config/plant.ts` (`NODE_DYNAMICS`, `HAULING`, `WORKER_ZONES`).
 - NiVORA mengirim truk bila node critical, atau node prioritas #1 dengan `ttc < 20`, **dan** residu ≥ 30% (`nivoraMinLoadLevel`). Urgensi rekomendasi "now" mengikuti aturan yang sama.
-- Reaktif: residu ≥ 90% atau jadwal tetap tiap 120 menit (bergiliran), rute terpendek; **tujuan tetap mengikuti pathway** (yang dibedakan hanya waktu & rute, sesuai §8).
+- Reaktif: residu ≥ 90% atau jadwal tetap tiap 60 menit (bergiliran; lihat §13.18), rute terpendek; **tujuan tetap mengikuti pathway** (yang dibedakan hanya waktu & rute, sesuai §8).
 - R dinamis: R edge berzona = R snapshot × pekerja sekarang / pekerja baseline zona.
 - Truk dialihkan segera saat ruasnya diblokir (termasuk saat muat dan saat skenario diganti); bila sedang di ruas yang diblokir, truk mundur (`retreat`) ke awal ruas.
 - Store `useSim` memegang engine `nivora` + `reactive` (seed & skenario & bobot sama); `setWeights` menormalisasi Σ = 1. Jam: `store/clock.ts` (rAF). Halaman debug sementara: `#debug`.
@@ -408,3 +408,11 @@ Keputusan ini **mengesampingkan** bagian sebelumnya bila bertentangan (ditetapka
 - Recharts memakai `var(--color-*)` langsung pada atribut SVG → ikut tema tanpa re-render.
 - Transisi: kelas `theme-transition` di `<html>` selama ±220 ms (warna DOM 200 ms + fade canvas); tidak dipasang bila `prefers-reduced-motion`.
 - Terukur (Surge 5×, 1600×900): 54 fps terang, 55 fps gelap.
+
+### 13.18 KPI 3P: definisi yang membedakan kedua mode
+- **People = dosis paparan** (`exposureDose`): pekerja-menit ditimbang intensitas (skor PM / 10) di zona dengan PM ≥ 5. Menggantikan durasi murni §9 sebagai angka utama: saat Production Surge PM selalu ≥ 5 di kedua mode sehingga durasi identik (±0%), padahal penanganan dini menurunkan PM Node A dari ±9 ke ±6. Durasi (`exposureTotal`, `exposureShift`) tetap dicatat & tampil di `#debug`.
+- **Productivity = trip tepat guna** (`usefulTripRate` = 1 − trip tak perlu / trip). Trip tak perlu = node masih `normal` **atau** residu < `nivoraMinLoadLevel` saat truk dikirim. Ditampilkan seperti Planet (angka NiVORA, "N% vs R%"), bukan persen perubahan — hitungan mentahnya terlalu kecil (0 vs 0 → "—", 0 vs 1 → −100%).
+- **Jadwal tetap reaktif 60 menit** (dulu 120): ronde per jam bergiliran antar node adalah sumber trip tak perlu pada operasi terjadwal; pada 120 menit hampir tidak pernah terjadi.
+- NiVORA selalu 100% trip tepat guna **karena aturannya** (hanya mengirim saat critical/ttc dekat dan muatan cukup) — KPI ini mengukur pemborosan baseline, bukan keunggulan yang muncul sendiri. Recovery rate berbeda karena *node mana* yang ditangani (kedua mode memakai pathway yang sama).
+- Trade-off yang tidak disembunyikan: jarak tempuh NiVORA lebih besar (safe route lebih panjang, trip lebih awal) — dijaga test `kpiDirection.test.ts` dan tampil di `#debug`.
+- Test hanya memeriksa **arah** (3 skenario × 1 shift, plus 3 seed lain), bukan nilai. Pada jam-jam awal Normal/Disruption trip tepat guna masih 100% vs 100%.
