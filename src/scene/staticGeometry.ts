@@ -20,7 +20,7 @@ import {
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CONVEYORS, FACILITIES, type Facility } from '../config/plant';
 import type { Vec3 } from '../sim/types';
-import { FACILITY_STYLE, SCENE, type FacilityStyle } from './palette';
+import type { FacilityStyle, ScenePalette } from './palette';
 
 export interface BoxSpec {
   size: Vec3;
@@ -44,8 +44,8 @@ const box = (size: Vec3, position: Vec3, style: FacilityStyle, edgeDim = 0.5): B
 });
 
 /** Kotak-kotak penyusun satu fasilitas (koordinat dunia). */
-function facilityBoxes(f: Facility): BoxSpec[] {
-  const style = FACILITY_STYLE[f.kind];
+function facilityBoxes(f: Facility, pal: ScenePalette): BoxSpec[] {
+  const style = pal.facility[f.kind];
   const [x, , z] = f.position;
   const [w, h, d] = f.size;
   switch (f.kind) {
@@ -66,11 +66,11 @@ function facilityBoxes(f: Facility): BoxSpec[] {
         box([rim, 0.5, d - 2 * rim], [x + w / 2 - rim / 2, 0.25, z], style),
         box([w * 0.45, 0.6, d * 0.18], [x - w * 0.12, 0.3, z + d * 0.08], style, 0.35),
         // Dasar lubang: pelat gelap tipis tanpa tepi.
-        { size: [w - rim, 0.04, d - rim], position: [x, 0.03, z], body: '#1f1611', top: '#1f1611', edge: null },
+        { size: [w - rim, 0.04, d - rim], position: [x, 0.03, z], body: pal.pit, top: pal.pit, edge: null },
       ];
     }
     case 'smelter': {
-      const stack: FacilityStyle = { body: '#1d2840', top: '#2a3858', edge: style.edge };
+      const stack = pal.stack;
       return [
         box([w, h, d], [x, h / 2, z], style),
         box([1.6, h * 0.75, 1.6], [x - w * 0.3, h + (h * 0.75) / 2, z - d * 0.15], stack),
@@ -91,7 +91,7 @@ const CONVEYOR_WIDTH = 1.3;
 const CONVEYOR_SEGMENT = 1.1;
 
 /** Rangka, pelat belt bersegmen, dan kaki penyangga conveyor (koordinat dunia). */
-function conveyorBoxes(): BoxSpec[] {
+function conveyorBoxes(pal: ScenePalette): BoxSpec[] {
   const out: BoxSpec[] = [];
   const up = new Vector3(0, 1, 0);
   for (const c of CONVEYORS) {
@@ -110,8 +110,8 @@ function conveyorBoxes(): BoxSpec[] {
       size: [length, 0.35, CONVEYOR_WIDTH + 0.25],
       position: [mid.x, mid.y, mid.z],
       quaternion: q,
-      body: SCENE.conveyorFrame,
-      top: SCENE.conveyorFrame,
+      body: pal.conveyorFrame,
+      top: pal.conveyorFrame,
       edge: null,
     });
     const segments = Math.max(1, Math.floor(length / CONVEYOR_SEGMENT));
@@ -122,8 +122,8 @@ function conveyorBoxes(): BoxSpec[] {
         size: [seg * 0.86, 0.08, CONVEYOR_WIDTH],
         position: [p.x, p.y, p.z],
         quaternion: q,
-        body: SCENE.conveyorBelt,
-        top: SCENE.conveyorBelt,
+        body: pal.conveyorBelt,
+        top: pal.conveyorBelt,
         edge: null,
       });
     }
@@ -132,8 +132,8 @@ function conveyorBoxes(): BoxSpec[] {
       out.push({
         size: [0.25, p.y, 0.25],
         position: [p.x, p.y / 2, p.z],
-        body: SCENE.conveyorFrame,
-        top: SCENE.conveyorFrame,
+        body: pal.conveyorFrame,
+        top: pal.conveyorFrame,
         edge: null,
       });
     }
@@ -141,7 +141,11 @@ function conveyorBoxes(): BoxSpec[] {
   return out;
 }
 
-export const STATIC_BOXES: readonly BoxSpec[] = [...FACILITIES.flatMap(facilityBoxes), ...conveyorBoxes()];
+/** Semua kotak statis untuk satu tema (dibangun ulang hanya saat tema berganti). */
+export const buildStaticBoxes = (pal: ScenePalette): BoxSpec[] => [
+  ...FACILITIES.flatMap((f) => facilityBoxes(f, pal)),
+  ...conveyorBoxes(pal),
+];
 
 const matrixOf = (s: BoxSpec): Matrix4 =>
   new Matrix4().compose(new Vector3(...s.position), s.quaternion ?? new Quaternion(), new Vector3(1, 1, 1));
