@@ -111,7 +111,7 @@ export function NodeCard({ nodeId, embedded = false }: { nodeId: string; embedde
             <Metric
               label={UI.card.residue}
               value={v.residue}
-              className={v.noWorkersHighResidue ? 'text-warning' : 'text-fg'}
+              className={v.noWorkersHighResidue ? 'text-warning-fg' : 'text-fg'}
             />
             <Metric label={UI.card.pm} value={PM_LEVEL_LABEL[v.pm]} word />
             <Metric label={UI.card.workers} value={v.workers} />
