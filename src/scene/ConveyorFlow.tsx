@@ -7,14 +7,15 @@ import { useMemo, useRef } from 'react';
 import { Object3D, Vector3, type InstancedMesh } from 'three';
 import { CONVEYORS } from '../config/plant';
 import { SCENARIOS } from '../config/scenarios';
-import { ORE_COLOR } from './palette';
 import { simFrame } from './simFrame';
+import { useScenePalette } from './useScenePalette';
 
 const PER_CONVEYOR = 9;
 const BASE_SPEED = 0.07; // panjang conveyor per detik pada laju 1.0×
 const LIFT = 0.42; // di atas pelat belt
 
 export function ConveyorFlow() {
+  const pal = useScenePalette();
   const mesh = useRef<InstancedMesh>(null);
 
   const data = useMemo(() => {
@@ -46,7 +47,7 @@ export function ConveyorFlow() {
   return (
     <instancedMesh ref={mesh} args={[undefined, undefined, data.n]} frustumCulled={false}>
       <dodecahedronGeometry args={[0.32, 0]} />
-      <meshStandardMaterial color={ORE_COLOR} roughness={0.9} flatShading />
+      <meshStandardMaterial color={pal.ore} roughness={0.9} flatShading />
     </instancedMesh>
   );
 }
