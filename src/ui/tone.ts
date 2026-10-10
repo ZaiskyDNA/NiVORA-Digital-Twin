@@ -1,6 +1,7 @@
 /**
  * Pemetaan nada → kelas utility token (design-system §2.1). Nama kelas ditulis utuh agar
- * terdeteksi Tailwind. Teks merah selalu `critical-fg`; fill/glow memakai `critical`.
+ * terdeteksi Tailwind. Teks status selalu varian `-fg` (≥4.5:1 di kedua tema); fill, garis, dan
+ * glow memakai warna status dasar (≥3:1).
  */
 import type { MweriClass, Status } from '../sim/types';
 
@@ -14,14 +15,14 @@ export interface Tone {
 
 export const STATUS_TONE: Record<Status, Tone> = {
   normal: {
-    text: 'text-normal',
+    text: 'text-normal-fg',
     fill: 'bg-normal',
     soft: 'bg-normal/16',
     border: 'border-normal',
     glow: 'shadow-glow-normal',
   },
   warning: {
-    text: 'text-warning',
+    text: 'text-warning-fg',
     fill: 'bg-warning',
     soft: 'bg-warning/16',
     border: 'border-warning',
@@ -40,7 +41,7 @@ export const MWERI_TONE: Record<MweriClass, Tone> = {
   rendah: STATUS_TONE.normal,
   sedang: STATUS_TONE.warning,
   tinggi: {
-    text: 'text-high',
+    text: 'text-high-fg',
     fill: 'bg-high',
     soft: 'bg-high/16',
     border: 'border-high',
