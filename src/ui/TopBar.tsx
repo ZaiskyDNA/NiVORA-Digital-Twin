@@ -62,12 +62,15 @@ export function TopBar() {
   return (
     <header className="pointer-events-none flex items-center justify-between gap-4 px-gutter pt-4">
       <div className="pointer-events-auto flex shrink-0 items-center gap-3">
-        <div
+        {/* Logo PNG berlatar putih (tanpa alpha) → ditaruh di tile putih agar rapi di tema gelap/terang. */}
+        <img
+          src="/Logo-NiVORA.png"
+          alt=""
           aria-hidden
-          className="grid size-10 place-items-center rounded-tile bg-linear-to-br from-safe to-normal text-heading font-extrabold text-on-status"
-        >
-          Ni
-        </div>
+          width={40}
+          height={40}
+          className="size-10 shrink-0 rounded-tile bg-white object-contain p-0.5"
+        />
         <div>
           <h1 className="text-heading font-bold tracking-tight">
             {UI.app.title} <span className="font-medium text-accent">{UI.app.titleAccent}</span>

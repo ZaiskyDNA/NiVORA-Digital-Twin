@@ -93,12 +93,14 @@ export function MobileTopBar() {
       className="pointer-events-none relative flex flex-col gap-2 bg-linear-to-b from-canvas via-canvas/90 to-transparent px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-4 landscape:flex-row landscape:items-center landscape:pb-6"
     >
       <div className="pointer-events-auto flex min-w-0 items-center gap-2 landscape:order-1 landscape:flex-1">
-        <div
+        <img
+          src="/Logo-NiVORA.png"
+          alt=""
           aria-hidden
-          className="grid size-9 shrink-0 place-items-center rounded-tile bg-linear-to-br from-safe to-normal text-body font-extrabold text-on-status"
-        >
-          Ni
-        </div>
+          width={36}
+          height={36}
+          className="size-9 shrink-0 rounded-tile bg-white object-contain p-0.5"
+        />
         <h1 className="min-w-0 flex-1 truncate text-heading font-bold tracking-tight">
           {UI.app.title} <span className="font-medium text-accent">{UI.app.titleAccent}</span>
         </h1>
